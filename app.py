@@ -289,11 +289,12 @@ def update_user_streak(user_id, streak_data):
 users = {}
 user_streaks = {}  # Track user streaks
 
-GEMINI_API_KEY = os.getenv("GOOGLE_API_KEY")
+# Try both GEMINI_API_KEY and GOOGLE_API_KEY for compatibility
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
 if not GEMINI_API_KEY:
-    app.logger.error("GOOGLE_API_KEY not found in environment variables. "
+    app.logger.error("GEMINI_API_KEY (or GOOGLE_API_KEY) not found in environment variables. "
                      "Please set it in your .env file or as a system environment variable.")
-    raise ValueError("GOOGLE_API_KEY is not set.")
+    raise ValueError("GEMINI_API_KEY is not set.")
 
 genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel('gemini-1.5-flash')
@@ -1572,8 +1573,12 @@ def sentiment_insights():
                          key=lambda x: x[1], reverse=True)[:5]
     
     # 4. Weekly summary
+    most_active = 'morning'
+    if time_of_day_patterns:
+        most_active = max(time_of_day_patterns, key=lambda x: time_of_day_patterns[x])
+    
     weekly_summary = {
-        'most_active_time': max(time_of_day_patterns, key=time_of_day_patterns.get),
+        'most_active_time': most_active,
         'primary_emotions': [concern[0] for concern in top_concerns[:3]],
         'conversation_frequency': len(chat_history),
         'crisis_alerts': sum(1 for s in recent_sentiments if s['crisis_flag'])
