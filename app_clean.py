@@ -418,38 +418,6 @@ def streak():
     
     return render_template('streak.html')
 
-@app.route("/sentiment_insights")
-def sentiment_insights():
-    """Sentiment insights and analytics page"""
-    if "user" not in session:
-        return redirect(url_for("login"))
-    
-    user_id = session.get("user_id")
-    
-    # Get user's sentiment data for analytics
-    try:
-        conn = get_db_connection()
-        sentiment_data = conn.execute("""
-            SELECT sentiment, confidence_score, emotions_detected, crisis_flag, 
-                   user_message, timestamp
-            FROM sentiment_tracking 
-            WHERE user_id = ? 
-            ORDER BY timestamp DESC 
-            LIMIT 50
-        """, (user_id,)).fetchall()
-        
-        chat_history = get_user_chat_history(user_id, limit=50)
-        conn.close()
-        
-        return render_template('sentiment_insights.html', 
-                             sentiment_data=sentiment_data, 
-                             chat_history=chat_history)
-    except Exception as e:
-        app.logger.error(f"Error loading sentiment insights: {e}")
-        return render_template('sentiment_insights.html', 
-                             sentiment_data=[], 
-                             chat_history=[])
-
 @app.route("/static/<path:filename>")
 def static_files(filename):
     """Serve static files"""
