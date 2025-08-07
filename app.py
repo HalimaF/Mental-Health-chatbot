@@ -1796,6 +1796,57 @@ def offline():
     """Offline page for PWA"""
     return render_template('offline.html')
 
+@app.route('/donate')
+def donate():
+    """Donation page to support the app"""
+    return render_template('donate.html')
+
+@app.route('/premium')
+def premium():
+    """Premium features page"""
+    premium_features = [
+        {
+            "title": "Advanced Analytics Dashboard",
+            "description": "Detailed mood patterns, weekly/monthly reports, and progress tracking",
+            "icon": "📊"
+        },
+        {
+            "title": "Personalized Insights",
+            "description": "AI-powered recommendations based on your conversation history",
+            "icon": "🎯"
+        },
+        {
+            "title": "Priority Support",
+            "description": "Faster AI responses and priority crisis intervention",
+            "icon": "⚡"
+        },
+        {
+            "title": "Export Your Data",
+            "description": "Download your conversation history and mood reports",
+            "icon": "💾"
+        },
+        {
+            "title": "Custom Themes",
+            "description": "Personalize your app with different color schemes",
+            "icon": "🎨"
+        }
+    ]
+    
+    return render_template('premium.html', features=premium_features)
+
+@app.route('/api/upgrade', methods=['POST'])
+def upgrade_to_premium():
+    """Handle premium upgrade (placeholder for payment processing)"""
+    if "user_id" not in session:
+        return jsonify({"error": "Please login first"}), 401
+    
+    # TODO: Integrate with payment processor (Stripe/PayPal)
+    # For now, just return success message
+    return jsonify({
+        "message": "Premium upgrade successful! Thank you for supporting mental health awareness.",
+        "features_unlocked": ["advanced_analytics", "priority_support", "export_data"]
+    })
+
 
 if __name__ == "__main__":
     init_db()
