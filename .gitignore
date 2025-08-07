@@ -1,0 +1,37 @@
+# Environment variables
+.env
+
+# Database files (will be created fresh on deployment)
+*.db
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Flask session files
+flask_session/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Development files
+test_*.py
+demo_*.py
+check_*.py
+system_*.py

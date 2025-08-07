@@ -1,0 +1,35 @@
+<svg width="700" height="180" viewBox="0 0 700 180" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  
+  <!-- Pakistan Flag on the left side -->
+  <g transform="translate(50, 70)" filter="url(#shadow)">
+    <!-- White stripe (left quarter) -->
+    <rect x="0" y="0" width="15" height="40" fill="#ffffff"/>
+    
+    <!-- Dark green field (right three quarters) -->
+    <rect x="15" y="0" width="45" height="40" fill="#006600"/>
+    
+    <!-- White crescent -->
+    <path d="M 35 12 A 8 8 0 0 1 35 28 A 6 6 0 0 0 35 12 Z" fill="#ffffff"/>
+    
+    <!-- White star -->
+    <path d="M 40 18 L 41 22 L 45 22 L 42 25 L 43 29 L 40 26 L 37 29 L 38 25 L 35 22 L 39 22 Z" fill="#ffffff"/>
+  </g>
+  
+  <!-- Urdu Calligraphy: دل آزاد -->
+  <text x="400" y="120" font-family="Noto Nastaliq Urdu, serif" font-size="80" 
+        text-anchor="middle" fill="#006600" font-weight="bold" 
+        style="text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
+    دل آزاد
+  </text>
+  
+  <!-- English subtitle -->
+  <text x="400" y="155" font-family="Inter, sans-serif" font-size="22" 
+        text-anchor="middle" fill="#006600" font-weight="700" letter-spacing="3px">
+    DIL E AZAAD
+  </text>
+</svg> 

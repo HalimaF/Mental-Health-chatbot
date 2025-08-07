@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DIL E AZAAD - Welcome</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #006600 0%, #ffffff 50%, #006600 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        .welcome-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .floating-hearts {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .heart {
+            position: absolute;
+            font-size: 2rem;
+            animation: float 6s ease-in-out infinite;
+            opacity: 0.6;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        .main-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 3rem;
+            border-radius: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        .logo {
+            font-size: 4rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #006600, #ffffff, #006600);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+        .logo-img {
+            max-width: 500px;
+            width: 100%;
+            height: auto;
+            margin: 0 auto 2rem auto;
+            display: block;
+        }
+        .subtitle {
+            font-size: 1.5rem;
+            color: #006600;
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+        .feature-card {
+            background: linear-gradient(135deg, #006600 0%, #ffffff 50%, #006600 100%);
+            color: #006600;
+            padding: 2rem;
+            border-radius: 1rem;
+            text-align: center;
+            transition: transform 0.3s ease;
+            border: 2px solid #006600;
+            font-weight: 600;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 102, 0, 0.3);
+        }
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .cta-button {
+            background: linear-gradient(135deg, #006600 0%, #ffffff 50%, #006600 100%);
+            color: #006600;
+            padding: 1rem 3rem;
+            border-radius: 3rem;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            display: inline-block;
+            margin: 1rem;
+            border: 2px solid #006600;
+        }
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 102, 0, 0.3);
+            background: linear-gradient(135deg, #ffffff 0%, #006600 50%, #ffffff 100%);
+            color: #006600;
+        }
+        .quote {
+            font-style: italic;
+            color: #006600;
+            margin: 2rem 0;
+            font-size: 1.1rem;
+            background: rgba(230, 255, 230, 0.5);
+            padding: 1rem;
+            border-radius: 1rem;
+            border: 1px solid #E6FFE6;
+        }
+        .quote-box {
+            background: linear-gradient(135deg, #E8F5E8 0%, #F0FFF0 100%);
+            padding: 1.5rem 2rem;
+            border-radius: 1rem;
+            margin: 2rem auto;
+            max-width: 600px;
+            border: 2px solid #006600;
+            box-shadow: 0 4px 8px rgba(0, 102, 0, 0.1);
+        }
+        .quote-text {
+            text-align: center;
+        }
+        .urdu-quote {
+            font-family: 'Noto Nastaliq Urdu', serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #006600;
+            margin-bottom: 0.5rem;
+        }
+        .english-quote {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #006600;
+            font-style: italic;
+        }
+        .logo-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
+            gap: 2rem;
+        }
+        .flag-img {
+            width: 180px;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 102, 0, 0.2);
+            background: #ffffff;
+            padding: 8px;
+            border: 2px solid #006600;
+        }
+        .logo-text {
+            text-align: left;
+        }
+        .urdu-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: #006600;
+            font-family: 'Noto Nastaliq Urdu', serif;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        .english-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #006600;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 3px;
+        }
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        .nav-btn {
+            padding: 0.8rem 2rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            border: 2px solid #006600;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .login-btn {
+            background: #ffffff;
+            color: #006600;
+            border: 3px solid #006600;
+            font-weight: 700;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+        }
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 102, 0, 0.3);
+            background: #006600;
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        .register-btn {
+            background: #006600;
+            color: #ffffff;
+            border: 3px solid #006600;
+            font-weight: 700;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        .register-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 102, 0, 0.3);
+            background: #ffffff;
+            color: #006600;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+        }
+        .guest-btn {
+            background: #f8f9fa;
+            color: #006600;
+            border: 2px dashed #006600;
+            font-weight: 600;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+        }
+        .guest-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 102, 0, 0.3);
+            background: #006600;
+            color: #ffffff;
+            border-style: solid;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-hearts">
+        <div class="heart" style="left: 10%; animation-delay: 0s; color: #006600;">💙</div>
+        <div class="heart" style="left: 20%; animation-delay: 1s; color: #ffffff;">🌟</div>
+        <div class="heart" style="left: 30%; animation-delay: 2s; color: #006600;">🧘</div>
+        <div class="heart" style="left: 40%; animation-delay: 3s; color: #ffffff;">🤝</div>
+        <div class="heart" style="left: 50%; animation-delay: 4s; color: #006600;">😊</div>
+        <div class="heart" style="left: 60%; animation-delay: 5s; color: #ffffff;">🌿</div>
+        <div class="heart" style="left: 70%; animation-delay: 0.5s; color: #006600;">✨</div>
+        <div class="heart" style="left: 80%; animation-delay: 1.5s; color: #ffffff;">💡</div>
+        <div class="heart" style="left: 90%; animation-delay: 2.5s; color: #006600;">💚</div>
+    </div>
+    
+    <div class="welcome-container">
+        <div class="main-content">
+            <div class="logo-section">
+                <!-- Pakistan Flag Image -->
+                <img src="{{ url_for('static', filename='pakistan-flag.png') }}" alt="Pakistan Flag" class="flag-img">
+                
+                <!-- DIL E AZAAD Text -->
+                <div class="logo-text">
+                    <div class="urdu-title">دل آزاد</div>
+                    <div class="english-title">DIL E AZAAD</div>
+                </div>
+            </div>
+            
+            <div class="subtitle">دل آزاد - Free Heart, Free Mind</div>
+            
+            <!-- Motivational Quote Box -->
+            <div class="quote-box">
+                <div class="quote-text">
+                    <div class="urdu-quote">ہر مشکل کے بعد آسانی ہے</div>
+                    <div class="english-quote">After every hardship comes ease</div>
+                </div>
+            </div>
+            
+            <!-- Navigation Buttons -->
+            <div class="nav-buttons">
+                <a href="{{ url_for('login') }}" class="nav-btn login-btn">Login</a>
+                <a href="{{ url_for('register') }}" class="nav-btn register-btn">Register</a>
+                <a href="{{ url_for('guest_chat') }}" class="nav-btn guest-btn">Continue as Guest</a>
+            </div>
+            
+            <p style="color: #006600; font-size: 1.1rem; line-height: 1.6; margin-bottom: 2rem;">
+                Welcome to your safe space for mental health support. We provide compassionate, 
+                confidential, and culturally-sensitive mental health assistance in both English and Urdu.
+            </p>
+            
+            <div class="features">
+                <div class="feature-card">
+                    <div class="feature-icon">🤝</div>
+                    <h3>Emotional Support</h3>
+                    <p>24/7 compassionate listening and validation</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🧘</div>
+                    <h3>Mindfulness Tools</h3>
+                    <p>Breathing exercises and grounding techniques</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💡</div>
+                    <h3>Coping Strategies</h3>
+                    <p>Personalized techniques for difficult moments</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌍</div>
+                    <h3>Bilingual Support</h3>
+                    <p>Available in English and Urdu</p>
+                </div>
+            </div>
+            
+            <div style="margin: 2rem 0;">
+                <a href="/chat" class="cta-button">Start Your Journey 💙</a>
+            </div>
+            
+            <div style="background: rgba(255, 193, 7, 0.1); padding: 1rem; border-radius: 1rem; margin-top: 2rem; border: 1px solid #FBBF24;">
+                <strong style="color: #d97706;">🚨 Crisis Support Available 24/7</strong><br>
+                <span style="color: #006600;">Emergency: 1122 • Crisis Helpline: 042-35761999</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

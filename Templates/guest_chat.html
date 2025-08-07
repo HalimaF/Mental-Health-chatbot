@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DIL E AZAAD - Guest Mode</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom green/white theme overrides for Pakistan flag */
+        body {
+            background: #fff;
+            color: #006600;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        .pakistan-header {
+            background: linear-gradient(135deg, #006600 0%, #27ae60 100%);
+            color: #fff;
+            border-bottom: none;
+        }
+        .pakistan-card {
+            background: #E6FFE6;
+            border: 1px solid #006600;
+            border-radius: 1rem;
+        }
+        .pakistan-btn {
+            background: #E6FFE6;
+            color: #006600;
+            border: 1px solid #006600;
+        }
+        .pakistan-btn:hover {
+            background: #006600;
+            color: #fff;
+        }
+
+        /* Chat message styling */
+        #messagesContainer {
+            max-height: 70vh; /* Limit height to enable scrolling */
+            overflow-y: auto; /* Enable vertical scrolling */
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            background: #f0fff0; /* Light green background for chat area */
+            border-radius: 1rem;
+            border: 1px solid #006600;
+        }
+
+        /* Message bubble styling */
+        .message-user {
+            background: #006600 !important;
+            color: white !important;
+            border-radius: 20px 20px 5px 20px;
+            padding: 12px 16px;
+            margin-left: auto;
+            margin-right: 0;
+            max-width: 80%;
+            word-wrap: break-word;
+            box-shadow: 0 2px 5px rgba(0, 102, 0, 0.3);
+        }
+
+        .message-bot {
+            background: white !important;
+            color: #006600 !important;
+            border: 1px solid #006600;
+            border-radius: 20px 20px 20px 5px;
+            padding: 12px 16px;
+            margin-left: 0;
+            margin-right: auto;
+            max-width: 85%;
+            word-wrap: break-word;
+            box-shadow: 0 2px 5px rgba(0, 102, 0, 0.1);
+        }
+
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 12px 16px;
+            background: white;
+            border: 1px solid #006600;
+            border-radius: 20px 20px 20px 5px;
+            margin-left: 0;
+            margin-right: auto;
+            max-width: 85%;
+        }
+
+        .typing-indicator .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #006600;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .typing-indicator .dot {
+            animation: bounce 0.6s infinite alternate;
+        }
+
+        .typing-indicator .dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator .dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-5px); }
+        }
+
+        /* Quick buttons */
+        .quick-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .quick-btn:active {
+            transform: translateY(1px);
+        }
+        
+        /* Login button styling */
+        .login-btn {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%) !important;
+            color: #006600 !important;
+            border: none !important;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+        }
+        
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+            color: #004400 !important;
+        }
+
+        /* Guest badge styling */
+        .guest-badge {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        /* Background animation */
+        .falling-icons-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .falling-icon {
+            position: absolute;
+            font-size: 24px;
+            animation: fall linear infinite;
+            opacity: 0.6;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-60px) rotate(0deg);
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
+
+        /* Input styling */
+        .chat-input {
+            border: 2px solid #006600;
+            border-radius: 25px;
+            padding: 12px 20px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .chat-input:focus {
+            border-color: #27ae60;
+            box-shadow: 0 0 0 3px rgba(0, 102, 0, 0.1);
+        }
+
+        .send-btn {
+            background: #006600;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .send-btn:hover {
+            background: #004d00;
+            transform: scale(1.1);
+        }
+
+        /* Welcome card styling */
+        .welcome-card {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .message-user, .message-bot {
+                max-width: 90%;
+            }
+            
+            h1 {
+                font-size: 2rem !important;
+            }
+            
+            .subtitle {
+                font-size: 1rem !important;
+            }
+            
+            /* Fix navbar overlap on mobile */
+            .pakistan-header {
+                padding: 2rem 1rem !important;
+                position: relative;
+            }
+            
+            .position-absolute.top-0.end-0 {
+                position: static !important;
+                display: flex;
+                justify-content: center;
+                margin-bottom: 1rem;
+                padding: 0 !important;
+            }
+            
+            .position-absolute.top-0.end-0 .d-flex {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 0.5rem !important;
+            }
+            
+            .position-absolute.top-0.end-0 .btn {
+                font-size: 0.8rem;
+                padding: 0.4rem 0.8rem !important;
+            }
+            
+            .container-fluid {
+                padding-bottom: 80px !important;
+            }
+            
+            .col-lg-8 {
+                padding: 0 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated background -->
+    <div class="falling-icons-bg" id="fallingIconsBg"></div>
+    
+    <script>
+        // Animated background icons
+        const icons = ['💙', '🌟', '✨', '🤝', '💚', '🌱', '☘️', '🕊️'];
+        const colors = ['#006600', '#27ae60', '#2ecc71', '#16a085', '#3498db', '#9b59b6'];
+        const iconCount = 12;
+        
+        const bg = document.getElementById('fallingIconsBg');
+        for (let i = 0; i < iconCount; i++) {
+            const icon = document.createElement('span');
+            icon.className = 'falling-icon';
+            icon.textContent = icons[Math.floor(Math.random() * icons.length)];
+            icon.style.left = Math.random() * 95 + 'vw';
+            icon.style.top = '-60px';
+            icon.style.color = colors[Math.floor(Math.random() * colors.length)];
+            icon.style.animationDuration = (6 + Math.random() * 6) + 's';
+            icon.style.animationDelay = (Math.random() * 6) + 's';
+            bg.appendChild(icon);
+        }
+    </script>
+    <div class="container-fluid min-vh-100 p-0" style="position:relative;z-index:2;padding-bottom:60px;">
+        <!-- Header -->
+        <div class="pakistan-header py-4 px-3 text-center shadow-lg" style="border-bottom: 0; position: relative;">
+            <!-- Navigation buttons -->
+            <div class="position-absolute top-0 end-0 p-3">
+                <div class="d-flex gap-2 align-items-center">
+                    <div class="d-flex gap-2 align-items-center">
+                        <span class="guest-badge">
+                            <i class="bi bi-person"></i> Guest Mode
+                        </span>
+                        <a href="/login" class="btn btn-sm btn-outline-light px-2 py-1" title="Login to view chat history">
+                            <i class="bi bi-chat-left-text"></i>
+                        </a>
+                        <button class="btn btn-sm btn-outline-light px-2 py-1" onclick="clearGuestChat()" title="Clear Chat History">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                        <a href="/login" class="btn btn-sm login-btn px-3 py-2 rounded-pill text-decoration-none">
+                            <i class="bi bi-box-arrow-in-right"></i> Login
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex flex-col items-center justify-center">
+                <h1 class="text-5xl font-extrabold flex items-center gap-3 mb-2" style="color:#fff;text-shadow:0 2px 12px #006600,0 1px 0 #27ae60;letter-spacing:1px;">
+                    <span style="font-size:2.5rem;">💙</span>
+                    <span>DIL E AZAAD</span>
+                </h1>
+                <div class="subtitle text-xl font-semibold mt-1" style="color:#A7F3D0;text-shadow:0 1px 6px #006600;">
+                    دل آزاد - Free Heart, Free Mind
+                </div>
+                <div class="mt-2" style="font-size:1.1rem;font-style:italic;color:#FBBF24;text-shadow:0 1px 6px #006600;">
+                    <span>"ہر مشکل کے بعد آسانی ہے" — After every hardship comes ease</span>
+                </div>
+            </div>
+        </div>
+        <!-- Chat Area -->
+        <div class="row justify-content-center py-4">
+            <div class="col-lg-8 col-md-10 col-12">
+                <div class="pakistan-card p-4 mb-4 text-center shadow welcome-card">
+                    <h2 class="text-2xl font-semibold mb-2 flex items-center justify-center gap-2"><span>💙</span> Welcome to DIL E AZAAD (Guest Mode)</h2>
+                    <p class="mb-3 text-green-900">I am here to listen and support you. Share what is on your mind in English or Urdu - there is no judgment here, only understanding.</p>
+                    
+                    <!-- Guest Notice -->
+                    <div class="alert alert-info border-0 mb-3" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border-left: 4px solid #2196f3;">
+                        <div class="d-flex align-items-center justify-content-center gap-2">
+                            <i class="bi bi-info-circle text-primary"></i>
+                            <span><strong>Guest Mode:</strong> Your chats are saved in your browser for this session. <a href="/login" class="text-decoration-none">Login</a> to save permanently and access from any device.</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick action buttons -->
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-3 col-6">
+                            <button class="btn pakistan-btn w-100 quick-btn" onclick="sendQuickMessage('I feel anxious')">
+                                😰 Feeling Anxious
+                            </button>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <button class="btn pakistan-btn w-100 quick-btn" onclick="sendQuickMessage('I feel sad')">
+                                😢 Feeling Sad
+                            </button>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <button class="btn pakistan-btn w-100 quick-btn" onclick="sendQuickMessage('I need motivation')">
+                                💪 Need Motivation
+                            </button>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <button class="btn pakistan-btn w-100 quick-btn" onclick="sendQuickMessage('affirmation')">
+                                🌟 Affirmation
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat messages container -->
+                <div id="messagesContainer" class="mb-4">
+                    <!-- Messages will be appended here -->
+                </div>
+
+                <!-- Chat input -->
+                <div class="pakistan-card p-3 shadow">
+                    <div class="d-flex gap-3 align-items-end">
+                        <div class="flex-grow-1">
+                            <textarea 
+                                id="messageInput" 
+                                class="form-control chat-input resize-none" 
+                                placeholder="Type your message here... (English/Urdu/Roman Urdu)"
+                                rows="2"
+                                style="resize: none; overflow-y: auto;"
+                            ></textarea>
+                        </div>
+                        <button class="send-btn" id="sendButton" onclick="sendMessage()">
+                            <i class="bi bi-send-fill text-white"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Session storage for guest chat history
+        const GUEST_CHAT_KEY = 'guest_chat_history';
+        
+        // Load previous chat history from session storage
+        function loadChatHistory() {
+            const savedChats = sessionStorage.getItem(GUEST_CHAT_KEY);
+            if (savedChats) {
+                const chatHistory = JSON.parse(savedChats);
+                chatHistory.forEach(chat => {
+                    addMessage(chat.message, 'user');
+                    addMessage(chat.response, 'bot');
+                });
+                scrollToBottom();
+            }
+        }
+        
+        // Save chat to session storage
+        function saveChatToStorage(message, response) {
+            const savedChats = sessionStorage.getItem(GUEST_CHAT_KEY);
+            const chatHistory = savedChats ? JSON.parse(savedChats) : [];
+            chatHistory.push({ message, response, timestamp: new Date().toISOString() });
+            sessionStorage.setItem(GUEST_CHAT_KEY, JSON.stringify(chatHistory));
+        }
+        
+        // Add message to chat
+        function addMessage(message, sender) {
+            const container = document.getElementById('messagesContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message-${sender}`;
+            messageDiv.innerHTML = message;
+            container.appendChild(messageDiv);
+            scrollToBottom();
+        }
+        
+        // Show typing indicator
+        function showTypingIndicator() {
+            const container = document.getElementById('messagesContainer');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'typing-indicator';
+            typingDiv.id = 'typingIndicator';
+            typingDiv.innerHTML = `
+                <span>Thinking</span>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            `;
+            container.appendChild(typingDiv);
+            scrollToBottom();
+        }
+        
+        // Remove typing indicator
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+        
+        // Scroll to bottom
+        function scrollToBottom() {
+            const container = document.getElementById('messagesContainer');
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        // Send message function
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message
+            addMessage(message, 'user');
+            input.value = '';
+            
+            // Show typing indicator
+            showTypingIndicator();
+            
+            // Disable send button
+            const sendButton = document.getElementById('sendButton');
+            sendButton.disabled = true;
+            
+            try {
+                const response = await fetch('/chat_clean', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+                
+                const data = await response.json();
+                
+                // Remove typing indicator
+                removeTypingIndicator();
+                
+                // Add bot response
+                addMessage(data.response, 'bot');
+                
+                // Save to session storage
+                saveChatToStorage(message, data.response);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                removeTypingIndicator();
+                addMessage('Sorry, I am having trouble connecting right now. Please try again in a moment.', 'bot');
+            } finally {
+                // Re-enable send button
+                sendButton.disabled = false;
+            }
+        }
+        
+        // Quick message function
+        function sendQuickMessage(message) {
+            document.getElementById('messageInput').value = message;
+            sendMessage();
+        }
+        
+        // Clear guest chat function
+        function clearGuestChat() {
+            if (confirm('Are you sure you want to clear your chat history? This cannot be undone.')) {
+                sessionStorage.removeItem(GUEST_CHAT_KEY);
+                document.getElementById('messagesContainer').innerHTML = '';
+                
+                // Show welcome message again
+                setTimeout(() => {
+                    addMessage(`
+                        <div style="text-align: center; padding: 20px;">
+                            <h4 style="color: #006600; margin-bottom: 15px;">🌟 Welcome to DIL E AZAAD! 🌟</h4>
+                            <p style="margin-bottom: 10px;">I'm here to listen and support you through any challenges you're facing.</p>
+                            <p style="margin-bottom: 10px;">Feel free to share your thoughts in <strong>English</strong>, <strong>Urdu</strong>, or <strong>Roman Urdu</strong>.</p>
+                            <p style="margin-bottom: 15px;">🔒 <em>Guest Mode:</em> Your conversations are saved in your browser for this session.</p>
+                            <p><strong>💡 Tip:</strong> Try the quick action buttons above or just start typing!</p>
+                        </div>
+                    `, 'bot');
+                }, 300);
+            }
+        }
+        
+        // Enter key functionality
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        
+        // Auto-resize textarea
+        document.getElementById('messageInput').addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+        
+        // Load chat history when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadChatHistory();
+            
+            // Show welcome message if no chat history
+            const savedChats = sessionStorage.getItem(GUEST_CHAT_KEY);
+            if (!savedChats || JSON.parse(savedChats).length === 0) {
+                setTimeout(() => {
+                    addMessage(`
+                        <div style="text-align: center; padding: 20px;">
+                            <h4 style="color: #006600; margin-bottom: 15px;">🌟 Welcome to DIL E AZAAD! 🌟</h4>
+                            <p style="margin-bottom: 10px;">I'm here to listen and support you through any challenges you're facing.</p>
+                            <p style="margin-bottom: 10px;">Feel free to share your thoughts in <strong>English</strong>, <strong>Urdu</strong>, or <strong>Roman Urdu</strong>.</p>
+                            <p style="margin-bottom: 15px;">🔒 <em>Guest Mode:</em> Your conversations are saved in your browser for this session.</p>
+                            <p><strong>💡 Tip:</strong> Try the quick action buttons above or just start typing!</p>
+                        </div>
+                    `, 'bot');
+                }, 500);
+            }
+        });
+    </script>
+</body>
+</html>

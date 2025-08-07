@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <met        .message.bot .message-bubble {
+            background: #f8fffe; /* Very light green for bot messages */
+            color: #2d5016;
+            border-bottom-left-radius: 0.25rem; /* Pointy corner for bot */
+            border: 1px solid #c3e6cb;
+            box-shadow: 0 2px 8px rgba(0, 102, 0, 0.1);
+        }
+        
+        /* Enhanced bot message formatting */
+        .message.bot .message-bubble h3 {
+            color: #155724;
+            margin-bottom: 0.75rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .message.bot .message-bubble p {
+            margin-bottom: 0.75rem;
+            line-height: 1.6;
+            color: #2d5016;
+        }
+        
+        .message.bot .message-bubble div[style*="background"] {
+            border-radius: 8px !important;
+            margin: 0.75rem 0 !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .message.bot .message-bubble strong {
+            color: #155724;
+            font-weight: 600;
+        }
+        
+        .message.bot .message-bubble em {
+            color: #28a745;
+            font-style: normal;
+            font-weight: 500;
+        }
+        
+        .message.bot .message-bubble ul, .message.bot .message-bubble ol {
+            padding-left: 1.5rem;
+            margin: 0.75rem 0;
+        }
+        
+        .message.bot .message-bubble li {
+            margin-bottom: 0.5rem;
+            line-height: 1.5;
+        }e="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DIL E AZAAD - Mental Health Support</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom green/white theme overrides for Pakistan flag */
+        body {
+            background: #fff;
+            color: #006600;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        .pakistan-header {
+            background: linear-gradient(135deg, #006600 0%, #27ae60 100%);
+            color: #fff;
+            border-bottom: none;
+        }
+        .pakistan-card {
+            background: #E6FFE6;
+            border: 1px solid #006600;
+            border-radius: 1rem;
+        }
+        .pakistan-btn {
+            background: #E6FFE6;
+            color: #006600;
+            border: 1px solid #006600;
+        }
+        .pakistan-btn:hover {
+            background: #006600;
+            color: #fff;
+        }
+
+        /* Chat message styling */
+        #messagesContainer {
+            max-height: 70vh; /* Limit height to enable scrolling */
+            overflow-y: auto; /* Enable vertical scrolling */
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            background: #f0fff0; /* Light green background for chat area */
+            border-radius: 1rem;
+            border: 1px solid #006600;
+        }
+
+        .message {
+            display: flex;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.bot {
+            justify-content: flex-start;
+        }
+
+        .message-bubble {
+            max-width: 80%;
+            padding: 0.75rem 1rem;
+            border-radius: 1.25rem;
+            line-height: 1.4;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .message.user .message-bubble {
+            background: #006600; /* Dark green for user messages */
+            color: #fff;
+            border-bottom-right-radius: 0.25rem; /* Pointy corner for user */
+        }
+
+        .message.bot .message-bubble {
+            background: #A7F3D0; /* Light green for bot messages */
+            color: #004400;
+            border-bottom-left-radius: 0.25rem; /* Pointy corner for bot */
+        }
+
+        /* Typing indicator */
+        .typing-indicator {
+            display: none; /* Hidden by default */
+            justify-content: flex-start;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .typing-indicator .dot {
+            animation: bounce 0.6s infinite alternate;
+        }
+
+        .typing-indicator .dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator .dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-5px); }
+        }
+
+        /* Quick buttons */
+        .quick-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .quick-btn:active {
+            transform: translateY(1px);
+        }
+        
+        /* Streak button styling */
+        .streak-btn {
+            background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%) !important;
+            color: white !important;
+            border: none !important;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+        }
+        
+        .streak-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+        }
+        
+        .streak-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .streak-modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .streak-modal .flame-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .streak-modal .streak-number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #ff6b35;
+            margin-bottom: 0.5rem;
+        }
+        
+        .streak-modal .encouragement {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f0fff0;
+            border-radius: 10px;
+            border: 1px solid #006600;
+        }
+        
+        /* Mobile Responsive Design */
+        @media (max-width: 768px) {
+            .pakistan-header {
+                padding: 2rem 1rem !important;
+                position: relative;
+            }
+            
+            .position-absolute.top-0.end-0 {
+                position: static !important;
+                display: flex;
+                justify-content: center;
+                margin-bottom: 1rem;
+                padding: 0 !important;
+            }
+            
+            .position-absolute.top-0.end-0 .d-flex {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 0.5rem !important;
+            }
+            
+            .position-absolute.top-0.end-0 .btn {
+                font-size: 0.8rem;
+                padding: 0.4rem 0.8rem !important;
+            }
+            
+            .pakistan-header h1 {
+                font-size: 2rem !important;
+                margin-top: 0;
+            }
+            
+            .pakistan-header .subtitle {
+                font-size: 1rem !important;
+            }
+            
+            .pakistan-header div[style*="font-size:1.1rem"] {
+                font-size: 0.9rem !important;
+            }
+            
+            .container-fluid {
+                padding-bottom: 80px !important;
+            }
+            
+            .col-lg-8 {
+                padding: 0 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Falling animated icons background -->
+    <div id="fallingIconsBg" style="position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:1;pointer-events:none;overflow:hidden;"></div>
+    <style>
+        @keyframes fall {
+            0% { transform: translateY(-60px) scale(1); opacity: 0.7; }
+            80% { opacity: 0.9; }
+            100% { transform: translateY(100vh) scale(1.2); opacity: 0.2; }
+        }
+        .falling-icon {
+            position: absolute;
+            font-size: 2.5rem;
+            opacity: 0.7;
+            pointer-events: none;
+            animation: fall linear infinite;
+            will-change: transform;
+        }
+    </style>
+    <script>
+        // Falling icons data
+        const icons = ["💙", "🌟", "🧘", "🤝", "😊", "🌿", "✨", "💡"];
+        const colors = ["#3498db", "#F59E0B", "#06B6D4", "#27ae60", "#10B981", "#006600", "#FBBF24", "#A7F3D0"];
+        const iconCount = 18;
+        const bg = document.getElementById('fallingIconsBg');
+        for (let i = 0; i < iconCount; i++) {
+            const icon = document.createElement('span');
+            icon.className = 'falling-icon';
+            icon.textContent = icons[Math.floor(Math.random() * icons.length)];
+            icon.style.left = Math.random() * 95 + 'vw';
+            icon.style.top = '-60px';
+            icon.style.color = colors[Math.floor(Math.random() * colors.length)];
+            icon.style.animationDuration = (6 + Math.random() * 6) + 's';
+            icon.style.animationDelay = (Math.random() * 6) + 's';
+            bg.appendChild(icon);
+        }
+    </script>
+    <div class="container-fluid min-vh-100 p-0" style="position:relative;z-index:2;padding-bottom:60px;">
+        <!-- Header -->
+        <div class="pakistan-header py-4 px-3 text-center shadow-lg" style="border-bottom: 0; position: relative;">
+            <!-- Navigation buttons -->
+            <div class="position-absolute top-0 end-0 p-3">
+                <div class="d-flex gap-2">
+                    <a href="/chat_history" class="btn btn-sm btn-outline-light px-3 py-2 rounded-pill text-decoration-none">
+                        <i class="bi bi-chat-left-text"></i> History
+                    </a>
+                    {% if session.get('user_id') %}
+                    <a href="/sentiment_insights" class="btn btn-sm btn-outline-light px-3 py-2 rounded-pill text-decoration-none">
+                        <i class="bi bi-graph-up"></i> Insights
+                    </a>
+                    {% endif %}
+                    <a href="/streak" class="btn btn-sm streak-btn px-3 py-2 rounded-pill text-decoration-none">
+                        <i class="bi bi-fire"></i> Streak
+                    </a>
+                    {% if session.get('user_id') %}
+                    <a href="/logout" class="btn btn-sm btn-outline-light px-3 py-2 rounded-pill text-decoration-none">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="flex flex-col items-center justify-center">
+                <h1 class="text-5xl font-extrabold flex items-center gap-3 mb-2" style="color:#fff;text-shadow:0 2px 12px #006600,0 1px 0 #27ae60;letter-spacing:1px;">
+                    <span style="font-size:2.5rem;">💙</span>
+                    <span>DIL E AZAAD</span>
+                </h1>
+                <div class="subtitle text-xl font-semibold mt-1" style="color:#A7F3D0;text-shadow:0 1px 6px #006600;">
+                    دل آزاد - Free Heart, Free Mind
+                </div>
+                <div class="mt-2" style="font-size:1.1rem;font-style:italic;color:#FBBF24;text-shadow:0 1px 6px #006600;">
+                    <span>"ہر مشکل کے بعد آسانی ہے" — After every hardship comes ease</span>
+                </div>
+            </div>
+        </div>
+        <!-- Chat Area -->
+        <div class="row justify-content-center py-4">
+            <div class="col-lg-8 col-md-10 col-12">
+                <div class="pakistan-card p-4 mb-4 text-center shadow welcome-card">
+                    <h2 class="text-2xl font-semibold mb-2 flex items-center justify-center gap-2"><span>💙</span> Welcome to DIL E AZAAD</h2>
+                    <p class="mb-3 text-green-900">I am here to listen and support you. Share what is on your mind in English or Urdu - there is no judgment here, only understanding.</p>
+                    
+                    <!-- Streak Button -->
+                    <div class="streak-section mb-3">
+                        <button class="streak-btn pakistan-btn btn rounded-pill px-4 py-2" onclick="showStreakInfo()">
+                            <span>🔥</span> <span id="streakCount">0</span> Day Streak
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
+                        <div class="pakistan-card p-2 flex flex-col items-center">
+                            <span class="text-2xl">🤝</span>
+                            <span class="text-green-900">Emotional support and validation</span>
+                        </div>
+                        <div class="pakistan-card p-2 flex flex-col items-center">
+                            <span class="text-2xl">🧘</span>
+                            <span class="text-green-900">Mindfulness and breathing exercises</span>
+                        </div>
+                        <div class="pakistan-card p-2 flex flex-col items-center">
+                            <span class="text-2xl">💡</span>
+                            <span class="text-green-900">Personalized coping strategies</span>
+                        </div>
+                        <div class="pakistan-card p-2 flex flex-col items-center">
+                            <span class="text-2xl">🌍</span>
+                            <span class="text-green-900">Bilingual support (English/Urdu)</span>
+                        </div>
+                    </div>
+                    <div class="pakistan-card p-2 mt-2">
+                        <strong>🚨 Crisis Support Available 24/7</strong><br>
+                        Emergency: 1122 • Crisis Helpline: 042-35761999
+                    </div>
+                </div>
+                <div id="messagesContainer" class="mb-4"></div>
+                <!-- Typing Indicator -->
+                <div class="typing-indicator mb-3" id="typingIndicator">
+                    <div class="pakistan-card p-2 flex items-center gap-2">
+                        <div class="typing-dots flex gap-1">
+                            <div class="dot bg-green-700 rounded-full w-2 h-2 animate-bounce"></div>
+                            <div class="dot bg-green-700 rounded-full w-2 h-2 animate-bounce"></div>
+                            <div class="dot bg-green-700 rounded-full w-2 h-2 animate-bounce"></div>
+                        </div>
+                        <span class="text-green-900 text-sm">Thinking...</span>
+                    </div>
+                </div>
+                <!-- Chat Input Bar -->
+                <div class="pakistan-card p-3 mt-3">
+                    <div class="d-flex flex-wrap gap-2 mb-2 justify-content-center">
+                        <button class="pakistan-btn btn rounded-pill px-3 quick-btn" data-message="I need encouragement"><span>🌟</span> Encouragement</button>
+                        <button class="pakistan-btn btn rounded-pill px-3 quick-btn" data-message="I feel anxious"><span>😰</span> Anxiety Help</button>
+                        <button class="pakistan-btn btn rounded-pill px-3 quick-btn" data-message="breathing exercise"><span>🧘</span> Breathing</button>
+                        <button class="pakistan-btn btn rounded-pill px-3 quick-btn" data-message="I feel sad"><span>💙</span> Sadness</button>
+                        <button class="pakistan-btn btn rounded-pill px-3 quick-btn" data-message="coping strategies"><span>💡</span> Coping</button>
+                        <button class="pakistan-btn btn rounded-pill px-3 quick-btn" data-message="I need crisis support"><span>🆘</span> Crisis Help</button>
+                    </div>
+                    <div class="input-group">
+                        <textarea id="messageInput" class="form-control" placeholder="Share what is on your mind... آپ جو محسوس کر رہے ہیں اسے بتائیں" rows="1"></textarea>
+                        <button id="sendButton" class="pakistan-btn btn rounded-pill ms-2 d-flex align-items-center gap-1"><span>💌</span><span>Send</span></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Motivational Quotes Footer -->
+    <footer class="bulletin" style="background:#006600;color:#fff;font-size:1.1rem;padding:12px 0;width:100vw;text-align:center;">
+        <span class="bulletin-quotes" id="bulletinQuotes" style="display:inline-block;white-space:nowrap;animation:scrollQuotes 30s linear infinite;"></span>
+    </footer>
+    
+    <!-- Streak Modal -->
+    <div class="streak-modal" id="streakModal">
+        <div class="streak-modal-content">
+            <div class="flame-icon">🔥</div>
+            <div class="streak-number" id="modalStreakCount">0</div>
+            <div style="color: #ff6b35; font-size: 1.2rem; margin-bottom: 1rem;">day streak</div>
+            
+            <div class="encouragement">
+                <div style="color: #006600; font-weight: 600; margin-bottom: 0.5rem;">Great job! 🎉</div>
+                <div style="color: #666; font-size: 0.9rem;">Keep up your mental health journey!</div>
+            </div>
+            
+            <div class="d-flex gap-2 mt-3">
+                <button class="btn btn-success rounded-pill px-4 py-2" onclick="doCheckin()">
+                    ✅ Check In Today
+                </button>
+                <button class="pakistan-btn btn rounded-pill px-4 py-2" onclick="closeStreakModal()">
+                    Continue Chatting
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <style>
+        @keyframes scrollQuotes {
+            0% { transform: translateX(100vw); }
+            100% { transform: translateX(-100vw); }
+        }
+    </style>
+    <script>
+        // Motivational quotes array
+        const quotes = [
+            "You are stronger than you think.",
+            "Every day is a new beginning.",
+            "Your feelings are valid.",
+            "Take a deep breath — you are not alone.",
+            "You deserve kindness, especially from yourself.",
+            "Small steps lead to big changes.",
+            "Asking for help is a sign of strength.",
+            "You matter. Your story matters.",
+            "It's okay to rest. Healing takes time.",
+            "You are not alone in this journey."
+        ];
+        // Join quotes with separators
+        document.getElementById('bulletinQuotes').textContent = quotes.join('    •    ');
+        
+        // Load streak data for registered users
+        async function loadStreakData() {
+            try {
+                const response = await fetch('/get_streak_data');
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Update streak display
+                    document.getElementById('streakCount').textContent = data.current_streak;
+                    
+                    console.log('Loaded streak data:', data);
+                } else {
+                    console.log('No streak data available or user not logged in');
+                }
+            } catch (error) {
+                console.log('Failed to load streak data:', error);
+            }
+        }
+        
+        // Load chat history for registered users
+        async function loadChatHistory() {
+            try {
+                const response = await fetch('/get_chat_history');
+                if (response.ok) {
+                    const data = await response.json();
+                    const messagesContainer = document.getElementById('messagesContainer');
+                    
+                    if (data.chat_history && data.chat_history.length > 0) {
+                        data.chat_history.forEach(chat => {
+                            // Add user message
+                            addMessage(chat.message, true);
+                            // Add bot response
+                            addMessage(chat.response, false);
+                        });
+                        
+                        // Scroll to bottom after loading history
+                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    } else {
+                        // Show welcome message for new users
+                        setTimeout(() => {
+                            addMessage(`
+                                <div style="text-align: center; padding: 20px;">
+                                    <h4 style="color: #006600; margin-bottom: 15px;">🌟 Welcome back to DIL E AZAAD! 🌟</h4>
+                                    <p style="margin-bottom: 10px;">I'm here to listen and support you through any challenges you're facing.</p>
+                                    <p style="margin-bottom: 10px;">Feel free to share your thoughts in <strong>English</strong>, <strong>Urdu</strong>, or <strong>Roman Urdu</strong>.</p>
+                                    <p style="margin-bottom: 15px;">💾 <em>Registered Mode:</em> All your conversations are automatically saved and accessible from any device.</p>
+                                    <p><strong>💡 Tip:</strong> Try the quick action buttons above or just start typing!</p>
+                                </div>
+                            `, false);
+                        }, 500);
+                    }
+                }
+            } catch (error) {
+                console.log('No chat history available or user not logged in');
+                // Show welcome message for new users
+                setTimeout(() => {
+                    addMessage(`
+                        <div style="text-align: center; padding: 20px;">
+                            <h4 style="color: #006600; margin-bottom: 15px;">🌟 Welcome to DIL E AZAAD! 🌟</h4>
+                            <p style="margin-bottom: 10px;">I'm here to listen and support you through any challenges you're facing.</p>
+                            <p style="margin-bottom: 10px;">Feel free to share your thoughts in <strong>English</strong>, <strong>Urdu</strong>, or <strong>Roman Urdu</strong>.</p>
+                            <p style="margin-bottom: 15px;">💾 <em>Registered Mode:</em> All your conversations are automatically saved and accessible from any device.</p>
+                            <p><strong>💡 Tip:</strong> Try the quick action buttons above or just start typing!</p>
+                        </div>
+                    `, false);
+                }, 500);
+            }
+        }
+    </script>
+
+    <script>
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing chat...');
+            
+            // Get DOM elements
+            const messagesContainer = document.getElementById('messagesContainer');
+            const messageInput = document.getElementById('messageInput');
+            const sendButton = document.getElementById('sendButton');
+            const typingIndicator = document.getElementById('typingIndicator');
+            
+            console.log('Elements found:', {
+                messagesContainer: !!messagesContainer,
+                messageInput: !!messageInput,
+                sendButton: !!sendButton,
+                typingIndicator: !!typingIndicator
+            });
+
+            if (!messagesContainer || !messageInput || !sendButton) {
+                console.error('Required elements not found!');
+                return;
+            }
+
+            // Load chat history for registered users
+            loadChatHistory();
+            
+            // Load current streak data
+            loadStreakData();
+
+            // Auto-resize textarea
+            function autoResize() {
+                messageInput.style.height = 'auto';
+                messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
+            }
+
+            // Send message function
+            async function sendMessage() {
+                const message = messageInput.value.trim();
+                console.log('Send message called with:', message);
+                
+                if (!message) {
+                    console.log('Empty message, returning');
+                    return;
+                }
+
+                try {
+                    addMessage(message, true);
+                    messageInput.value = '';
+                    autoResize();
+                    setLoading(true);
+
+                    const response = await fetch('/chat_clean', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ user_input: message })
+                    });
+
+                    console.log('Response received:', response.status);
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok: ' + response.status);
+                    }
+                    const data = await response.json();
+                    
+                    console.log('Data received:', data);
+                    setLoading(false);
+                    if (data && data.response) {
+                        addMessage(data.response, false);
+                    } else {
+                        throw new Error('Invalid response format');
+                    }
+                } catch (error) {
+                    console.error('Error in sendMessage:', error);
+                    setLoading(false);
+                    addMessage(
+                        '<div style="color: #EF4444; padding: 1rem; background: #FEE2E2; border-radius: 0.5rem; border: 1px solid #FCA5A5;">' +
+                        '<strong>🔌 Connection Error</strong><br>' +
+                        'I am having trouble connecting. Error: ' + error.message + '<br>' +
+                        'Please try again or contact Crisis Helpline: 042-35761999 if you need immediate support.' +
+                        '</div>', 
+                        false
+                    );
+                }
+            }
+
+            function addMessage(content, isUser) {
+                try {
+                    console.log('Adding message - isUser:', isUser, 'content length:', content.length);
+                    
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+                    
+                    const bubbleDiv = document.createElement('div');
+                    bubbleDiv.className = 'message-bubble';
+                    bubbleDiv.innerHTML = content;
+                    
+                    messageDiv.appendChild(bubbleDiv);
+                    messagesContainer.appendChild(messageDiv);
+                    
+                    if (!isUser) {
+                        const welcomeCard = document.querySelector('.welcome-card');
+                        if (welcomeCard) {
+                            welcomeCard.style.display = 'none';
+                        }
+                    }
+                    
+                    scrollToBottom();
+                } catch (error) {
+                    console.error('Error adding message:', error);
+                }
+            }
+
+            function setLoading(loading) {
+                try {
+                    sendButton.disabled = loading;
+                    if (loading) {
+                        sendButton.innerHTML = '<span>⏳</span><span>Sending...</span>';
+                        if (typingIndicator) {
+                            typingIndicator.style.display = 'flex';
+                        }
+                    } else {
+                        sendButton.innerHTML = '<span>💌</span><span>Send</span>';
+                        if (typingIndicator) {
+                            typingIndicator.style.display = 'none';
+                        }
+                    }
+                    scrollToBottom();
+                } catch (error) {
+                    console.error('Error setting loading state:', error);
+                }
+            }
+
+            function scrollToBottom() {
+                setTimeout(() => {
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }, 100);
+            }
+
+            messageInput.addEventListener('input', autoResize);
+            
+            messageInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    console.log('Enter key pressed');
+                    sendMessage();
+                }
+            });
+
+            sendButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('Send button clicked');
+                sendMessage();
+            });
+
+            const quickButtons = document.querySelectorAll('.quick-btn');
+            console.log('Found quick buttons:', quickButtons.length);
+            
+            quickButtons.forEach(function(button, index) {
+                console.log('Setting up button', index, 'with message:', button.getAttribute('data-message'));
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const message = button.getAttribute('data-message');
+                    console.log('Quick button clicked:', message);
+                    if (message) {
+                        messageInput.value = message;
+                        sendMessage();
+                    }
+                });
+            });
+
+            messageInput.focus();
+            console.log('Chat initialization complete');
+
+            window.testChat = function() {
+                console.log('Test function called');
+                addMessage('Test user message', true);
+                setTimeout(function() {
+                    addMessage('Test bot response', false);
+                }, 1000);
+            };
+
+            window.debugSendMessage = sendMessage;
+            window.debugAddMessage = addMessage;
+        });
+        
+        // Streak functionality
+        function showStreakInfo() {
+            // Get current streak from server WITHOUT checking in
+            fetch('/get_streak_data')
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error('Error:', data.error);
+                    // Show default streak info
+                    document.getElementById('streakCount').textContent = '0';
+                    document.getElementById('modalStreakCount').textContent = '0';
+                } else {
+                    document.getElementById('streakCount').textContent = data.current_streak;
+                    document.getElementById('modalStreakCount').textContent = data.current_streak;
+                }
+                document.getElementById('streakModal').style.display = 'flex';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Show default streak info
+                document.getElementById('streakCount').textContent = '0';
+                document.getElementById('modalStreakCount').textContent = '0';
+                document.getElementById('streakModal').style.display = 'flex';
+            });
+        }
+        
+        // Check-in functionality
+        function doCheckin() {
+            fetch('/checkin', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                } else {
+                    // Update streak display
+                    document.getElementById('streakCount').textContent = data.current_streak;
+                    document.getElementById('modalStreakCount').textContent = data.current_streak;
+                    
+                    // Show success message
+                    alert(data.message + ' Your streak is now ' + data.current_streak + ' days!');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to check in. Please try again.');
+            });
+        }
+        
+        function closeStreakModal() {
+            document.getElementById('streakModal').style.display = 'none';
+        }
+        
+        // Close modal when clicking outside
+        document.getElementById('streakModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeStreakModal();
+            }
+        });
+    </script>
+</body>
+</html> 

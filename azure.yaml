@@ -1,0 +1,21 @@
+# Mental Health Chatbot - Azure Deployment
+
+# Services (bundled into a single deployment)
+name: mental-health-chatbot
+metadata:
+  template: python-webapp@0.0.1-beta
+
+# Infrastructure as Code
+infra:
+  provider: bicep
+  path: infra
+
+# Application Services
+services:
+  backend:
+    project: .
+    language: python
+    host: appservice
+    
+pipeline:
+  provider: github

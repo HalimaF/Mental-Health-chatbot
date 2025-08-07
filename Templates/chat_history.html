@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DIL E AZAAD - Chat History</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        /* Custom green/white theme for Pakistan flag */
+        body {
+            background: #fff;
+            color: #006600;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0, 102, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .flag-img {
+            width: 40px;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 102, 0, 0.2);
+            background: #ffffff;
+            padding: 2px;
+            border: 1px solid #006600;
+        }
+        
+        .logo-text {
+            text-align: left;
+        }
+        
+        .urdu-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #006600;
+            font-family: 'Noto Nastaliq Urdu', serif;
+            margin-bottom: 0.1rem;
+        }
+        
+        .english-title {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #006600;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 1px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .nav-links a {
+            color: #006600;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: all 0.3s;
+            border: 1px solid transparent;
+        }
+        
+        .nav-links a:hover {
+            background: #E6FFE6;
+            border-color: #006600;
+        }
+        
+        .logout-btn {
+            background: #ff4757 !important;
+            color: white !important;
+            border-color: #ff4757 !important;
+        }
+        
+        .logout-btn:hover {
+            background: #ff3742 !important;
+            border-color: #ff3742 !important;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .streak-card {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 102, 0, 0.1);
+            border: 1px solid #e0f2e0;
+            margin-bottom: 2rem;
+        }
+        
+        .streak-title {
+            color: #006600;
+            font-size: 2.5rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0, 102, 0, 0.1);
+        }
+        
+        .checkin-btn {
+            background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 1rem;
+        }
+        
+        .checkin-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+            color: white;
+            text-decoration: none;
+        }
+
+        .pakistan-header {
+            background: linear-gradient(135deg, #006600 0%, #27ae60 100%);
+            color: #fff;
+            border-bottom: none;
+        }
+        .pakistan-card {
+            background: #E6FFE6;
+            border: 1px solid #006600;
+            border-radius: 1rem;
+        }
+        .pakistan-btn {
+            background: #E6FFE6;
+            color: #006600;
+            border: 1px solid #006600;
+        }
+        .pakistan-btn:hover {
+            background: #006600;
+            color: #fff;
+        }
+
+        /* Chat history specific styles */
+        .chat-history-container {
+            max-height: 70vh;
+            overflow-y: auto;
+            padding: 1rem;
+            background: #f0fff0;
+            border-radius: 1rem;
+        }
+        
+        .chat-session {
+            background: #fff;
+            border: 1px solid #d4edda;
+            border-radius: 1rem;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0,102,0,0.1);
+        }
+        
+        .chat-session-header {
+            border-bottom: 1px solid #d4edda;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .chat-timestamp {
+            color: #666;
+            font-size: 0.875rem;
+        }
+        
+        .user-message {
+            background: #e3f2fd;
+            padding: 0.75rem;
+            border-radius: 1rem;
+            margin-bottom: 0.5rem;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .bot-response {
+            background: #f8fffe;
+            padding: 1rem;
+            border-radius: 1rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #27ae60;
+            border: 1px solid #c3e6cb;
+            box-shadow: 0 2px 8px rgba(0, 102, 0, 0.1);
+        }
+        
+        /* Enhanced bot response formatting in history */
+        .bot-response h3 {
+            color: #155724;
+            margin-bottom: 0.75rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .bot-response p {
+            margin-bottom: 0.75rem;
+            line-height: 1.6;
+            color: #2d5016;
+        }
+        
+        .bot-response div[style*="background"] {
+            border-radius: 8px !important;
+            margin: 0.75rem 0 !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+            padding: 1rem !important;
+        }
+        
+        .bot-response strong {
+            color: #155724;
+            font-weight: 600;
+        }
+        
+        .bot-response em {
+            color: #28a745;
+            font-style: normal;
+            font-weight: 500;
+        }
+        
+        .bot-response ul, .bot-response ol {
+            padding-left: 1.5rem;
+            margin: 0.75rem 0;
+        }
+        
+        .bot-response li {
+            margin-bottom: 0.5rem;
+            line-height: 1.5;
+        }
+        
+        .bot-response > div {
+            color: #2d5016;
+        }
+        
+        .message-time {
+            color: #888;
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+        }
+        
+        .no-history {
+            text-align: center;
+            color: #666;
+            padding: 2rem;
+        }
+        
+        .back-btn {
+            background: #fff;
+            color: #006600;
+            border: 1px solid #006600;
+        }
+        
+        .back-btn:hover {
+            background: #006600;
+            color: #fff;
+        }
+        
+        /* Mobile Responsive Design */
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 1rem;
+                align-items: center;
+            }
+            
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 0.5rem;
+            }
+            
+            .nav-links a {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.9rem;
+            }
+            
+            .container {
+                margin-top: 1rem;
+                padding: 0 1rem;
+            }
+            
+            .streak-card {
+                padding: 1.5rem;
+                margin-bottom: 1rem;
+            }
+            
+            .urdu-title {
+                font-size: 1rem;
+            }
+            
+            .english-title {
+                font-size: 0.6rem;
+            }
+            
+            .flag-img {
+                width: 35px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo-section">
+            <img src="{{ url_for('static', filename='pakistan-flag.png') }}" alt="Pakistan Flag" class="flag-img">
+            <div class="logo-text">
+                <div class="urdu-title">دل آزاد</div>
+                <div class="english-title">DIL E AZAAD</div>
+            </div>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('chat') }}">💬 Chat</a>
+            <a href="{{ url_for('streak') }}">🔥 Streak</a>
+            <a href="{{ url_for('welcome') }}">🏠 Home</a>
+            <a href="{{ url_for('logout') }}" class="logout-btn">🚪 Logout</a>
+        </div>
+    </div>
+
+    <div class="container-fluid min-vh-100 p-0">
+        <!-- Main Content -->
+        <div class="container mt-4">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10">
+                    <div class="streak-card">
+                        <h1 class="streak-title">📜 Your Chat History</h1>
+                        <p style="color: #666; margin-bottom: 2rem;">Review your previous conversations with Dil E Azaad</p>
+                        
+                        {% if chat_history and chat_history|length > 0 %}
+                        <div class="chat-history-container">
+                            {% for chat in chat_history %}
+                            <div class="chat-session">
+                                <div class="chat-session-header">
+                                    <div class="chat-timestamp">
+                                        <i class="bi bi-clock"></i> 
+                                        <span class="timestamp-text">{{ chat.timestamp }}</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="user-message">
+                                    <strong>You:</strong> {{ chat.message }}
+                                    <div class="message-time">
+                                        <span class="timestamp-text">{{ chat.timestamp }}</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="bot-response">
+                                    <strong>Dil E Azaad:</strong> 
+                                    <div>{{ chat.response | safe }}</div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="no-history">
+                            <i class="bi bi-chat-left-text" style="font-size: 3rem; color: #ccc;"></i>
+                            <h4 class="mt-3">No Previous Conversations</h4>
+                            <p>You haven't had any conversations yet. Start chatting to build your history!</p>
+                            <a href="{{ url_for('chat') }}" class="checkin-btn" style="display: inline-block; text-decoration: none;">
+                                <i class="bi bi-chat"></i> Start Chatting
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Format dates on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                const timestampTexts = document.querySelectorAll('.timestamp-text');
+                
+                timestampTexts.forEach(function(timestampElement) {
+                    const timeText = timestampElement.textContent.trim();
+                    if (timeText && timeText !== '') {
+                        try {
+                            // Handle different timestamp formats
+                            let date;
+                            if (timeText.includes('T')) {
+                                // ISO format
+                                date = new Date(timeText);
+                            } else {
+                                // Try parsing as is
+                                date = new Date(timeText);
+                            }
+                            
+                            // Check if date is valid
+                            if (isNaN(date.getTime())) {
+                                console.log('Invalid date:', timeText);
+                                return;
+                            }
+                            
+                            // Check if this is in the chat-timestamp (header) or message-time
+                            if (timestampElement.closest('.chat-timestamp')) {
+                                // Format for header: "January 15, 2024 at 3:30 PM"
+                                const options = { 
+                                    year: 'numeric', 
+                                    month: 'long', 
+                                    day: 'numeric', 
+                                    hour: 'numeric', 
+                                    minute: '2-digit',
+                                    hour12: true 
+                                };
+                                const formatted = date.toLocaleString('en-US', options).replace(' at', ' at');
+                                timestampElement.textContent = formatted;
+                            } else if (timestampElement.closest('.message-time')) {
+                                // Format for message time: "3:30 PM"
+                                const options = { 
+                                    hour: 'numeric', 
+                                    minute: '2-digit',
+                                    hour12: true 
+                                };
+                                timestampElement.textContent = date.toLocaleString('en-US', options);
+                            }
+                        } catch (e) {
+                            console.log('Could not format timestamp:', timeText, e);
+                            // Fallback - just clean up the text
+                            timestampElement.textContent = timeText.replace('T', ' ').replace(/\.\d+Z?$/, '');
+                        }
+                    }
+                });
+            } catch (e) {
+                console.error('Error in timestamp formatting:', e);
+            }
+        });
+    </script>
+</body>
+</html>

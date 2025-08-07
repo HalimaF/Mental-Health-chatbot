@@ -1,0 +1,10 @@
+{
+  "resourcesResourceGroups": "rg-",
+  "storageStorageAccounts": "st",
+  "keyVaultVaults": "kv-",
+  "managedIdentityUserAssignedIdentities": "id-",
+  "appManagedEnvironments": "cae-",
+  "appContainerApps": "ca-",
+  "webSitesAppService": "app-",
+  "webServerFarms": "plan-"
+}

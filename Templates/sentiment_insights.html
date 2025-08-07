@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mental Health Insights 🇵🇰</title>
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #e6ffe6 0%, #ffffff 100%);
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* Animated moving icons background - same as main theme */
+        .moving-icons {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .main-content {
+            position: relative;
+            z-index: 1;
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,102,0,0.10);
+            max-width: 1200px;
+            margin: 20px auto 120px auto;
+            padding: 32px 24px 24px 24px;
+            min-height: calc(100vh - 160px);
+        }
+        
+        .navbar {
+            background-color: #006600;
+            padding: 1rem;
+            border-radius: 10px 10px 0 0;
+            margin: -32px -24px 24px -24px;
+        }
+        
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .navbar a:hover, .navbar a.active {
+            background-color: #10B981;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .page-header {
+            color: #006600;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2rem;
+            font-weight: 600;
+        }
+        
+        .insight-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0, 102, 0, 0.1);
+            border-left: 4px solid #10B981;
+        }
+        
+        .insight-card h3 {
+            color: #006600;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0, 102, 0, 0.1);
+        }
+        
+        .insights-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .insight-item {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+        }
+        
+        .insight-item.positive { border-left-color: #10B981; }
+        .insight-item.concern { border-left-color: #f39c12; }
+        .insight-item.crisis { border-left-color: #e74c3c; }
+        .insight-item.emotion { border-left-color: #3498db; }
+        
+        .insight-icon {
+            font-size: 2rem;
+            margin-right: 15px;
+            min-width: 50px;
+        }
+        
+        .insight-message {
+            flex-grow: 1;
+            color: #2c3e50;
+            line-height: 1.6;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        
+        .empty-state h2 {
+            color: #006600;
+            margin-bottom: 20px;
+        }
+        
+        .empty-state p {
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .cta-button {
+            background: #10B981;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+        
+        .cta-button:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+        }
+        
+        /* Motivational Quotes Bulletin - same as main theme */
+        .bulletin {
+            position: fixed;
+            left: 0; right: 0; bottom: 0;
+            background: #006600;
+            color: #fff;
+            font-size: 1.1rem;
+            padding: 12px 0;
+            width: 100vw;
+            z-index: 2;
+            overflow: hidden;
+        }
+        
+        .bulletin-quotes {
+            display: inline-block;
+            white-space: nowrap;
+            animation: scrollQuotes 30s linear infinite;
+        }
+        
+        @keyframes scrollQuotes {
+            0% { transform: translateX(100vw); }
+            100% { transform: translateX(-100vw); }
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .main-content {
+                margin: 10px;
+                padding: 20px 15px;
+            }
+            
+            .navbar {
+                margin: -20px -15px 20px -15px;
+                padding: 15px;
+            }
+            
+            .navbar a {
+                margin: 5px;
+                display: inline-block;
+            }
+            
+            .page-header {
+                font-size: 1.5rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Animated moving icons background - same as main theme -->
+    <svg class="moving-icons" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <g>
+            <circle cx="10" cy="20" r="4" fill="#10B981">
+                <animate attributeName="cx" values="10;90;10" dur="12s" repeatCount="indefinite" />
+                <animate attributeName="cy" values="20;80;20" dur="10s" repeatCount="indefinite" />
+            </circle>
+            <text x="30" y="15" font-size="8" fill="#3498db" opacity="0.7">
+                💙
+                <animate attributeName="x" values="30;70;30" dur="14s" repeatCount="indefinite" />
+                <animate attributeName="y" values="15;85;15" dur="11s" repeatCount="indefinite" />
+            </text>
+            <text x="60" y="80" font-size="8" fill="#F59E0B" opacity="0.7">
+                🌟
+                <animate attributeName="x" values="60;20;60" dur="13s" repeatCount="indefinite" />
+                <animate attributeName="y" values="80;10;80" dur="12s" repeatCount="indefinite" />
+            </text>
+            <text x="80" y="40" font-size="8" fill="#06B6D4" opacity="0.7">
+                🧘
+                <animate attributeName="x" values="80;10;80" dur="15s" repeatCount="indefinite" />
+                <animate attributeName="y" values="40;70;40" dur="13s" repeatCount="indefinite" />
+            </text>
+            <text x="50" y="50" font-size="8" fill="#27ae60" opacity="0.7">
+                🤝
+                <animate attributeName="x" values="50;90;50" dur="16s" repeatCount="indefinite" />
+                <animate attributeName="y" values="50;20;50" dur="14s" repeatCount="indefinite" />
+            </text>
+        </g>
+    </svg>
+
+    <div class="main-content">
+        <!-- Navigation -->
+        <div class="navbar">
+            <a href="/">🏠 Home</a>
+            <a href="/chat">💬 Chat</a>
+            <a href="/chat_history">📝 History</a>
+            <a href="/sentiment_insights" class="active">📊 Insights</a>
+            <a href="/streak">🔥 Streak</a>
+            <a href="/logout">🚪 Logout</a>
+        </div>
+
+        <h1 class="page-header">🧠 Your Mental Health Insights</h1>
+
+        {% if recent_sentiments and recent_sentiments|length > 0 %}
+            <!-- Statistics Overview -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">{{ recent_sentiments|length }}</div>
+                    <div class="stat-label">Recent Conversations</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ sentiment_stats|length }}</div>
+                    <div class="stat-label">Mood Categories</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">
+                        {% set crisis_count = recent_sentiments|selectattr('crisis_flag', 'equalto', 1)|list|length %}
+                        {{ crisis_count }}
+                    </div>
+                    <div class="stat-label">Crisis Alerts</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">
+                        {% set avg_confidence = (recent_sentiments|sum(attribute='confidence_score')|float / recent_sentiments|length * 100)|round|int %}
+                        {{ avg_confidence }}%
+                    </div>
+                    <div class="stat-label">Analysis Confidence</div>
+                </div>
+            </div>
+
+            <!-- Personal Insights -->
+            {% if insights and insights|length > 0 %}
+            <div class="insight-card">
+                <h3>💡 Personal Insights</h3>
+                <ul class="insights-list">
+                    {% for insight in insights %}
+                    <li class="insight-item {{ insight.type }}">
+                        <div class="insight-icon">{{ insight.icon }}</div>
+                        <div class="insight-message">{{ insight.message }}</div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <!-- Sentiment Distribution Chart -->
+            {% if sentiment_labels and sentiment_labels|length > 0 %}
+            <div class="chart-container">
+                <h3 style="color: #006600; margin-bottom: 20px;">📈 Sentiment Distribution (Last 7 Days)</h3>
+                <canvas id="sentimentChart" style="max-height: 400px;"></canvas>
+            </div>
+            {% endif %}
+
+            <!-- Daily Mood Trend -->
+            {% if daily_dates and daily_dates|length > 0 %}
+            <div class="chart-container">
+                <h3 style="color: #006600; margin-bottom: 20px;">📅 Daily Mood Trend (Last 14 Days)</h3>
+                <canvas id="moodTrendChart" style="max-height: 400px;"></canvas>
+            </div>
+            {% endif %}
+
+            <!-- Emotion Frequency -->
+            {% if emotion_frequency and emotion_frequency|length > 0 %}
+            <div class="insight-card">
+                <h3>🎭 Top Emotions Detected</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 20px;">
+                    {% for emotion, count in emotion_frequency.items() %}
+                    <div style="background: #f8fff8; padding: 15px; border-radius: 10px; text-align: center; border: 1px solid #10B981;">
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #006600;">{{ count }}</div>
+                        <div style="color: #2c3e50; margin-top: 5px;">{{ emotion.replace('_', ' ').title() }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- NEW: Progress Analytics -->
+            {% if progress_metrics %}
+            <div class="insight-card">
+                <h3>📈 Your Progress</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                    <div style="background: {% if progress_metrics.improvement %}#e8f8f5{% else %}#fff3e0{% endif %}; padding: 20px; border-radius: 10px; border: 1px solid {% if progress_metrics.improvement %}#10B981{% else %}#f39c12{% endif %};">
+                        <h4 style="margin-top: 0; color: {% if progress_metrics.improvement %}#006600{% else %}#e67e22{% endif %};">
+                            {% if progress_metrics.improvement %}📊 Improvement Detected{% else %}📉 Mood Tracking{% endif %}
+                        </h4>
+                        <p style="margin-bottom: 0;">
+                            Recent mood average: <strong>{{ progress_metrics.recent_mood_avg }}</strong><br>
+                            {% if progress_metrics.improvement %}
+                                <span style="color: #10B981;">↗️ Improving by {{ progress_metrics.improvement_amount }} points</span>
+                            {% else %}
+                                <span style="color: #f39c12;">→ Tracking your patterns</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    
+                    {% if conversation_insights %}
+                    <div style="background: #f0f9ff; padding: 20px; border-radius: 10px; border: 1px solid #0ea5e9;">
+                        <h4 style="margin-top: 0; color: #0369a1;">💬 Conversation Quality</h4>
+                        <p style="margin-bottom: 0;">
+                            Total conversations: <strong>{{ conversation_insights.total_conversations }}</strong><br>
+                            Average length: <strong>{{ conversation_insights.avg_length }} words</strong><br>
+                            Engagement: <strong style="color: 
+                                {% if conversation_insights.engagement_level == 'High' %}#10B981
+                                {% elif conversation_insights.engagement_level == 'Medium' %}#f39c12
+                                {% else %}#6b7280{% endif %};">{{ conversation_insights.engagement_level }}</strong>
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- NEW: Weekly Summary -->
+            {% if weekly_summary %}
+            <div class="insight-card">
+                <h3>📅 Weekly Summary</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px;">
+                    <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #3b82f6;">
+                        <strong style="color: #1e40af;">⏰ Most Active Time</strong><br>
+                        <span style="color: #374151;">{{ weekly_summary.most_active_time|title }}</span>
+                    </div>
+                    <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #8b5cf6;">
+                        <strong style="color: #7c3aed;">🎭 Primary Emotions</strong><br>
+                        <span style="color: #374151;">{{ weekly_summary.primary_emotions|join(', ')|title }}</span>
+                    </div>
+                    <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #10b981;">
+                        <strong style="color: #059669;">📊 Activity Level</strong><br>
+                        <span style="color: #374151;">{{ weekly_summary.conversation_frequency }} conversations</span>
+                    </div>
+                    {% if weekly_summary.crisis_alerts > 0 %}
+                    <div style="background: #fef2f2; padding: 15px; border-radius: 8px; border-left: 4px solid #ef4444;">
+                        <strong style="color: #dc2626;">⚠️ Crisis Alerts</strong><br>
+                        <span style="color: #374151;">{{ weekly_summary.crisis_alerts }} detected</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Recent Activity -->
+            <div class="insight-card">
+                <h3>🕐 Recent Activity</h3>
+                <div style="max-height: 300px; overflow-y: auto;">
+                    {% for sentiment in recent_sentiments[:10] %}
+                    <div style="background: #f8fff8; padding: 15px; margin-bottom: 10px; border-radius: 10px; border-left: 4px solid 
+                        {% if sentiment.crisis_flag %}#e74c3c
+                        {% elif sentiment.sentiment == 'severe_negative' %}#f39c12
+                        {% elif sentiment.sentiment == 'positive' %}#10B981
+                        {% else %}#3498db{% endif %};">
+                        <div style="display: flex; justify-content: between; align-items: center;">
+                            <div style="flex-grow: 1;">
+                                <strong style="color: #006600;">{{ sentiment.sentiment.replace('_', ' ').title() }}</strong>
+                                {% if sentiment.crisis_flag %}<span style="color: #e74c3c; margin-left: 10px;">⚠️ Crisis Alert</span>{% endif %}
+                            </div>
+                            <small style="color: #666;">{{ sentiment.timestamp[:16] }}</small>
+                        </div>
+                        {% if sentiment.emotions_detected %}
+                        <div style="margin-top: 10px; font-size: 0.9rem; color: #2c3e50;">
+                            <strong>Emotions:</strong> {{ sentiment.emotions_detected }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        {% else %}
+            <!-- Empty State -->
+            <div class="empty-state">
+                <h2>🌱 Start Your Mental Health Journey</h2>
+                <p>You haven't had any conversations yet. Start chatting with our AI therapist to begin tracking your emotional wellness and get personalized insights.</p>
+                <p>Our advanced sentiment analysis will help you:</p>
+                <ul style="text-align: left; display: inline-block; margin: 20px 0;">
+                    <li>✅ Track your mood patterns over time</li>
+                    <li>✅ Identify emotional triggers</li>
+                    <li>✅ Monitor your mental health progress</li>
+                    <li>✅ Get personalized therapeutic support</li>
+                    <li>✅ Receive crisis intervention when needed</li>
+                </ul>
+                <a href="/chat" class="cta-button">💬 Start Your First Conversation</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Motivational Quotes Bulletin - same as main theme -->
+    <div class="bulletin">
+        <span class="bulletin-quotes" id="bulletinQuotes"></span>
+    </div>
+
+    <script>
+        // Motivational quotes array - same as main theme
+        const quotes = [
+            "You are stronger than you think.",
+            "Every day is a new beginning.",
+            "Your feelings are valid.",
+            "Take a deep breath — you are not alone.",
+            "You deserve kindness, especially from yourself.",
+            "Small steps lead to big changes.",
+            "Asking for help is a sign of strength.",
+            "You matter. Your story matters.",
+            "It's okay to rest. Healing takes time.",
+            "You are not alone in this journey."
+        ];
+        document.getElementById('bulletinQuotes').textContent = quotes.join('   •   ');
+
+        // Chart.js configurations
+        {% if sentiment_labels and sentiment_labels|length > 0 %}
+        // Sentiment Distribution Chart
+        const sentimentCtx = document.getElementById('sentimentChart').getContext('2d');
+        new Chart(sentimentCtx, {
+            type: 'doughnut',
+            data: {
+                labels: {{ sentiment_labels|safe }},
+                datasets: [{
+                    data: {{ sentiment_counts|safe }},
+                    backgroundColor: {{ chart_colors|safe }},
+                    borderWidth: 3,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true,
+                            color: '#2c3e50'
+                        }
+                    }
+                }
+            }
+        });
+        {% endif %}
+
+        {% if daily_dates and daily_dates|length > 0 %}
+        // Daily Mood Trend Chart
+        const moodTrendCtx = document.getElementById('moodTrendChart').getContext('2d');
+        new Chart(moodTrendCtx, {
+            type: 'line',
+            data: {
+                labels: {{ daily_dates|safe }},
+                datasets: [{
+                    label: 'Mood Score',
+                    data: {{ daily_sentiment_scores|safe }},
+                    borderColor: '#10B981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#10B981',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 3,
+                    pointRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        },
+                        ticks: {
+                            color: '#2c3e50'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        },
+                        ticks: {
+                            color: '#2c3e50'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#2c3e50'
+                        }
+                    }
+                }
+            }
+        });
+        {% endif %}
+    </script>
+</body>
+</html>
