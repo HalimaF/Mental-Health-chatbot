@@ -32,7 +32,7 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 DetectorFactory.seed = 0
 load_dotenv()
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='Templates')
 
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")
 if not app.config["SECRET_KEY"]:
