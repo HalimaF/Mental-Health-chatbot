@@ -1,71 +1,151 @@
 {% extends "base.html" %}
 {% block title %}Chat — Dil-e-Azaad{% endblock %}
+{% block container_class %}chat-wrap{% endblock %}
+{% block footer %}{% endblock %}
 
 {% block head %}
 <style>
-.chat-shell{display:flex;flex-direction:column;height:calc(100vh - 190px);min-height:420px}
-#messages{
-  flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:.7rem;
-  background:var(--wash);border:1px solid var(--line);border-radius:var(--radius);
+/* The chat is a room, not a page: the thread scrolls, the composer stays put,
+   and nothing else competes for attention. */
+main{padding:0; display:flex; min-height:0}
+.chat-wrap{display:flex; flex-direction:column; height:calc(100dvh - var(--header-h)); padding:0!important; max-width:820px}
+
+#thread{
+  flex:1; overflow-y:auto; overscroll-behavior:contain;
+  padding:1.5rem clamp(1rem,4vw,1.5rem) .5rem;
+  display:flex; flex-direction:column; gap:.2rem;
+  scroll-behavior:smooth;
 }
-.msg{display:flex}
-.msg.user{justify-content:flex-end}
-.msg.bot{justify-content:flex-start}
+/* Keep a space between the brace and the id selector below -- an open brace
+   immediately followed by a hash is how Jinja opens a comment, and it will
+   swallow the rest of the file. */
+@media (prefers-reduced-motion: reduce){ #thread{scroll-behavior:auto} }
+
+/* Opening state: warm, personal, and it asks rather than instructs. */
+.opener{margin:auto 0; padding:1rem 0 2rem; animation:rise .5s var(--ease) both}
+.opener .eyebrow{margin-bottom:.7rem}
+.opener h1{font-size:clamp(1.6rem,5vw,2.2rem); margin-bottom:.6rem; color:var(--ink)}
+.opener p{color:var(--ink-2); font-size:1.02rem; max-width:46ch}
+
+.seeds{display:flex; flex-wrap:wrap; gap:.5rem; margin-top:1.4rem}
+.seed{
+  background:var(--surface); border:1px solid var(--line-2); color:var(--ink-2);
+  padding:.55rem 1rem; border-radius:var(--r-full); font:inherit; font-size:.89rem;
+  cursor:pointer; text-align:left; box-shadow:var(--sh-1);
+  transition:transform .15s var(--ease), border-color .15s, color .15s, background .15s;
+}
+.seed:hover{border-color:var(--brand); color:var(--brand); background:var(--brand-soft); transform:translateY(-1px)}
+
+/* --- messages --- */
+.turn{display:flex; margin-top:.55rem; animation:rise .35s var(--ease) both}
+.turn.me{justify-content:flex-end}
+.turn.tight{margin-top:.15rem}
+
 .bubble{
-  max-width:min(78%,620px);padding:.7rem 1rem;border-radius:16px;
-  white-space:pre-wrap;overflow-wrap:anywhere;font-size:.95rem;box-shadow:0 1px 2px rgba(0,40,15,.07);
+  max-width:min(84%,600px); padding:.8rem 1.1rem;
+  font-size:1rem; line-height:1.65; white-space:pre-wrap;
+  border-radius:var(--r-xl); box-shadow:var(--sh-1);
 }
-.msg.user .bubble{background:var(--green);color:#fff;border-bottom-right-radius:5px}
-.msg.bot .bubble{background:#fff;color:var(--ink);border:1px solid var(--line);border-bottom-left-radius:5px}
-.msg .crisis{max-width:min(78%,620px)}
-.stamp{font-size:.72rem;color:var(--muted);margin:.15rem .3rem 0}
-.composer{display:flex;gap:.5rem;align-items:flex-end;margin-top:.75rem}
-.composer textarea{resize:none;max-height:140px;min-height:46px;border-radius:20px}
-.typing{display:none;gap:4px;padding:.6rem 1rem;align-items:center}
-.typing.on{display:flex}
-.typing span{width:7px;height:7px;border-radius:50%;background:var(--green-300);animation:b 1.2s infinite}
-.typing span:nth-child(2){animation-delay:.2s}
-.typing span:nth-child(3){animation-delay:.4s}
-@keyframes b{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
-.starters{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.75rem}
-.starters button{
-  background:var(--wash-2);border:1px solid var(--line);color:var(--green);
-  padding:.4rem .8rem;border-radius:999px;font:inherit;font-size:.85rem;cursor:pointer;
+.turn.me .bubble{
+  background:linear-gradient(160deg,var(--brand-2),var(--brand));
+  color:var(--brand-ink); border-bottom-right-radius:var(--r-sm);
 }
-.starters button:hover{background:var(--green);color:#fff}
-.intro{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:1rem;margin-bottom:.75rem}
-.intro h2{font-size:1.05rem;margin:0 0 .35rem}
-.intro p{margin:0;font-size:.9rem;color:var(--muted)}
+.turn.bot .bubble{
+  background:var(--surface); color:var(--ink);
+  border:1px solid var(--line); border-bottom-left-radius:var(--r-sm);
+}
+.turn.tight.me .bubble{border-top-right-radius:var(--r-sm)}
+.turn.tight.bot .bubble{border-top-left-radius:var(--r-sm)}
+
+/* Always rendered, just quiet. A hover-only reveal is invisible on a phone,
+   which is where nearly all of this app's traffic is. */
+.stamp{
+  font-size:.71rem; color:var(--ink-3); padding:.15rem .75rem .35rem;
+  opacity:.55; transition:opacity .2s;
+}
+.turn:hover + .stamp,.stamp:hover{opacity:1}
+.stamp.me{text-align:right}
+
+.turn.bot .crisis,.turn.bot .notice{max-width:min(84%,600px)}
+
+/* Three dots that breathe. Reads as thinking, not loading. */
+.thinking{display:none; align-items:center; gap:5px; padding:.85rem 1.2rem; margin-top:.55rem;
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--r-xl);
+  border-bottom-left-radius:var(--r-sm); width:fit-content; box-shadow:var(--sh-1)}
+.thinking.on{display:flex; animation:rise .3s var(--ease) both}
+.thinking i{width:7px; height:7px; border-radius:50%; background:var(--ink-3); animation:pulse 1.4s ease-in-out infinite}
+.thinking i:nth-child(2){animation-delay:.18s}
+.thinking i:nth-child(3){animation-delay:.36s}
+@keyframes pulse{0%,60%,100%{opacity:.28; transform:translateY(0)}30%{opacity:.95; transform:translateY(-3px)}}
+
+/* --- composer --- */
+.composer-shell{
+  position:sticky; bottom:0; padding:.5rem clamp(1rem,4vw,1.5rem) max(1rem,env(safe-area-inset-bottom));
+  background:linear-gradient(to top,var(--bg) 62%,transparent);
+}
+.composer{
+  display:flex; align-items:flex-end; gap:.5rem;
+  background:var(--surface); border:1px solid var(--line-2);
+  border-radius:var(--r-xl); padding:.4rem .4rem .4rem 1rem;
+  box-shadow:var(--sh-2); transition:border-color .18s var(--ease), box-shadow .18s;
+}
+.composer:focus-within{border-color:var(--brand); box-shadow:var(--sh-2),0 0 0 3px color-mix(in srgb,var(--brand) 15%,transparent)}
+.composer textarea{
+  flex:1; border:0; background:transparent; box-shadow:none!important;
+  resize:none; padding:.6rem 0; min-height:26px; max-height:150px; line-height:1.55;
+  font-size:1rem; color:var(--ink); outline:none!important;
+}
+.send{
+  width:42px; height:42px; flex:none; border-radius:50%; border:0; cursor:pointer;
+  background:var(--brand); color:var(--brand-ink); display:grid; place-items:center;
+  transition:transform .14s var(--ease), background .15s, opacity .15s;
+}
+.send:hover:not(:disabled){background:var(--brand-2); transform:scale(1.05)}
+.send:disabled{opacity:.35; cursor:not-allowed}
+.send svg{width:18px; height:18px}
+
+.legal{text-align:center; font-size:.76rem; color:var(--ink-3); margin:.55rem 0 0}
+.legal a{color:var(--ink-3); text-decoration:underline}
+
+@media (max-width:560px){
+  .bubble{max-width:88%; font-size:.98rem}
+  .seeds{flex-direction:column; align-items:stretch}
+  .seed{text-align:center}
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="chat-shell">
-  <div class="intro" id="intro">
-    <h2>Hello{% if current_user %}, {{ current_user.username }}{% endif %} — how are you doing today?</h2>
-    <p>Whatever is on your mind, you can say it here. I remember our conversation, so you don't have to start over each time.</p>
+<div id="thread" role="log" aria-live="polite" aria-label="Conversation" tabindex="0">
+  <div class="opener" id="opener">
+    <div class="eyebrow">A private space</div>
+    <h1>Hello{% if current_user %}, {{ current_user.username }}{% endif %}.</h1>
+    <p>However today has actually been — you can say it here, in whatever words come. I'll remember what you tell me, so you never have to start from the beginning again.</p>
+    <div class="seeds" id="seeds">
+      <button class="seed" type="button" data-msg="I've been feeling anxious and I can't switch my mind off">My mind won't switch off</button>
+      <button class="seed" type="button" data-msg="I haven't been sleeping properly and everything feels harder because of it">I can't sleep</button>
+      <button class="seed" type="button" data-msg="I feel completely alone right now, even around people">I feel alone</button>
+      <button class="seed" type="button" data-msg="There's so much pressure on me from family and studies and I'm not coping">Too much pressure</button>
+      <button class="seed" type="button" data-msg="Can you take me through a grounding exercise? I'm panicking">Help me calm down</button>
+    </div>
   </div>
+</div>
 
-  <div class="starters" id="starters">
-    <button type="button" data-msg="I've been feeling really anxious lately">I'm anxious</button>
-    <button type="button" data-msg="I'm having trouble sleeping and it's affecting everything">I can't sleep</button>
-    <button type="button" data-msg="I feel very alone right now">I feel alone</button>
-    <button type="button" data-msg="I'm overwhelmed with study and family pressure">I'm overwhelmed</button>
-    <button type="button" data-msg="Can you walk me through a grounding exercise?">Grounding exercise</button>
-  </div>
+<div class="thinking" id="thinking" aria-hidden="true"><i></i><i></i><i></i></div>
 
-  <div id="messages" role="log" aria-live="polite" aria-label="Conversation"></div>
-
-  <div class="typing" id="typing" aria-hidden="true"><span></span><span></span><span></span></div>
-
+<div class="composer-shell">
   <form class="composer" id="composer">
     <label class="sr-only" for="input">Your message</label>
-    <textarea id="input" rows="1" placeholder="Type what's on your mind…" maxlength="4000" autocomplete="off"></textarea>
-    <button class="btn" id="send" type="submit">Send</button>
+    <textarea id="input" rows="1" placeholder="Say what's on your mind…" maxlength="4000" autocomplete="off"></textarea>
+    <button class="send" id="send" type="submit" aria-label="Send message" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 19V5M5 12l7-7 7 7"/>
+      </svg>
+    </button>
   </form>
-  <p class="hint" style="margin:.5rem 0 0">
-    Dil-e-Azaad is an AI and can be wrong. It is not a substitute for professional care.
-    <a href="{{ url_for('main.resources') }}">Crisis resources</a>
+  <p class="legal">
+    AI can get things wrong and isn't a substitute for care.
+    <a href="{{ url_for('main.resources') }}">Talk to a person</a>
   </p>
 </div>
 {% endblock %}
@@ -73,136 +153,152 @@
 {% block scripts %}
 <script>
 (function () {
-  const box = document.getElementById('messages');
-  const form = document.getElementById('composer');
-  const input = document.getElementById('input');
-  const send = document.getElementById('send');
-  const typing = document.getElementById('typing');
-  const intro = document.getElementById('intro');
-  let busy = false;
+  var thread = document.getElementById('thread');
+  var form = document.getElementById('composer');
+  var input = document.getElementById('input');
+  var send = document.getElementById('send');
+  var thinking = document.getElementById('thinking');
+  var opener = document.getElementById('opener');
+  var busy = false, lastRole = null;
 
-  function scroll() { box.scrollTop = box.scrollHeight; }
-
-  // Text is set via textContent, never innerHTML. Model output and stored
-  // history are untrusted input as far as the DOM is concerned.
-  function addMessage(text, isUser, stamp) {
-    const row = document.createElement('div');
-    row.className = 'msg ' + (isUser ? 'user' : 'bot');
-    const bubble = document.createElement('div');
-    bubble.className = 'bubble';
-    bubble.textContent = text;
-    row.appendChild(bubble);
-    box.appendChild(row);
-    if (stamp) {
-      const s = document.createElement('div');
-      s.className = 'stamp';
-      s.style.textAlign = isUser ? 'right' : 'left';
-      s.textContent = stamp;
-      box.appendChild(s);
+  function atBottom() {
+    return thread.scrollHeight - thread.scrollTop - thread.clientHeight < 120;
+  }
+  function toBottom(force) {
+    if (force || atBottom()) {
+      requestAnimationFrame(function () { thread.scrollTop = thread.scrollHeight; });
     }
-    scroll();
-    return row;
   }
 
-  function addResources(resources, isCrisis) {
-    if (!resources || !resources.length) return;
-    const row = document.createElement('div');
-    row.className = 'msg bot';
-    row.appendChild(App.crisisPanel(
-      resources,
-      isCrisis ? 'Please reach out to someone now' : 'If you want to talk to a person'
-    ));
-    box.appendChild(row);
-    scroll();
+  // textContent only. Model output and stored history are untrusted as far as
+  // the DOM is concerned, no matter how well-behaved the model usually is.
+  function addMessage(text, isUser, when) {
+    var pin = atBottom();
+    var row = document.createElement('div');
+    row.className = 'turn ' + (isUser ? 'me' : 'bot') + (lastRole === isUser ? ' tight' : '');
+    var b = document.createElement('div');
+    b.className = 'bubble';
+    b.textContent = text;
+    row.appendChild(b);
+    thread.appendChild(row);
+
+    if (when) {
+      var s = document.createElement('div');
+      s.className = 'stamp' + (isUser ? ' me' : '');
+      s.textContent = when;
+      thread.appendChild(s);
+    }
+    lastRole = isUser;
+    toBottom(pin || isUser);
+  }
+
+  function addBlock(node) {
+    var pin = atBottom();
+    var row = document.createElement('div');
+    row.className = 'turn bot';
+    row.appendChild(node);
+    thread.appendChild(row);
+    lastRole = null;
+    toBottom(pin);
   }
 
   function addNotice(text) {
-    const row = document.createElement('div');
-    row.className = 'msg bot';
-    const n = document.createElement('div');
+    var n = document.createElement('div');
     n.className = 'notice';
     n.textContent = text;
-    row.appendChild(n);
-    box.appendChild(row);
-    scroll();
+    addBlock(n);
+  }
+
+  function stamp(iso) {
+    var d = iso ? new Date(iso) : new Date();
+    var today = new Date();
+    var sameDay = d.toDateString() === today.toDateString();
+    return sameDay
+      ? d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+      : d.toLocaleDateString([], { day: 'numeric', month: 'short' }) + ', ' +
+        d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
   }
 
   function setBusy(on) {
     busy = on;
-    send.disabled = on;
-    input.disabled = on;
-    typing.classList.toggle('on', on);
-    if (!on) input.focus();
+    send.disabled = on || !input.value.trim();
+    input.readOnly = on;
+    thinking.classList.toggle('on', on);
+    thinking.setAttribute('aria-hidden', String(!on));
+    if (on) toBottom(true); else input.focus();
   }
 
   async function loadHistory() {
-    const res = await App.getJSON('/api/history?limit=60');
-    if (!res.ok || !res.data || !res.data.messages) return;
-    const msgs = res.data.messages;
-    if (!msgs.length) return;
-    intro.style.display = 'none';
-    msgs.forEach(function (m) {
-      const when = m.timestamp ? new Date(m.timestamp).toLocaleString() : '';
-      addMessage(m.content, m.role === 'user', when);
+    var res = await App.getJSON('/api/history?limit=60');
+    if (!res.ok || !res.data || !res.data.messages || !res.data.messages.length) return;
+    opener.remove();
+    res.data.messages.forEach(function (m) {
+      addMessage(m.content, m.role === 'user', stamp(m.timestamp));
     });
-    scroll();
+    toBottom(true);
   }
 
   async function sendMessage(text) {
     if (busy) return;
-    const message = (text !== undefined ? text : input.value).trim();
+    var message = (text !== undefined ? text : input.value).trim();
     if (!message) return;
 
-    intro.style.display = 'none';
-    addMessage(message, true);
+    if (opener) opener.remove();
+    addMessage(message, true, stamp());
     input.value = '';
-    input.style.height = 'auto';
+    autosize();
     setBusy(true);
 
-    const res = await App.postJSON('/api/chat', { message: message });
+    var res = await App.postJSON('/api/chat', { message: message });
     setBusy(false);
 
     if (!res.ok) {
-      const d = res.data || {};
+      var d = res.data || {};
       if (res.status === 401) {
-        addNotice('Your session ended. Please log in again to keep chatting.');
+        addNotice('Your session has ended. Please log in again to keep talking.');
         return;
       }
       addNotice(d.message || 'Something went wrong on my end. Please try again.');
-      // Even on failure, never leave someone without a route to a human.
       if (res.status >= 500) {
-        const r = await App.getJSON('/api/resources');
-        if (r.ok && r.data) addResources(r.data.resources, false);
+        var r = await App.getJSON('/api/resources');
+        if (r.ok && r.data) addBlock(App.crisisPanel(r.data.resources, 'If you need someone now'));
       }
       return;
     }
 
-    const data = res.data;
-    addMessage(data.response, false, new Date().toLocaleString());
-    addResources(data.resources, data.risk && data.risk.is_crisis);
+    var data = res.data;
+    addMessage(data.response, false, stamp());
+    if (data.resources && data.resources.length) {
+      addBlock(App.crisisPanel(
+        data.resources,
+        data.risk && data.risk.is_crisis ? 'Please reach out to someone now' : 'If you’d rather talk to a person'
+      ));
+    }
     if (data.degraded) {
-      addNotice('I\'m running in a reduced mode right now, so my replies may be shorter than usual.');
+      addNotice('I’m running in a reduced mode just now, so my replies may be shorter than usual.');
     }
   }
 
-  form.addEventListener('submit', function (e) { e.preventDefault(); sendMessage(); });
+  function autosize() {
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 150) + 'px';
+  }
 
   input.addEventListener('input', function () {
-    input.style.height = 'auto';
-    input.style.height = Math.min(input.scrollHeight, 140) + 'px';
+    autosize();
+    send.disabled = busy || !input.value.trim();
   });
-
   input.addEventListener('keydown', function (e) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   });
-
-  document.getElementById('starters').addEventListener('click', function (e) {
-    const btn = e.target.closest('button[data-msg]');
-    if (btn) sendMessage(btn.getAttribute('data-msg'));
+  form.addEventListener('submit', function (e) { e.preventDefault(); sendMessage(); });
+  document.getElementById('seeds').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-msg]');
+    if (b) sendMessage(b.getAttribute('data-msg'));
   });
 
   loadHistory();
-  input.focus();
+  if (window.matchMedia('(min-width:720px)').matches) input.focus();
 })();
 </script>
 {% endblock %}

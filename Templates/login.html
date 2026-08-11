@@ -1,31 +1,46 @@
 {% extends "base.html" %}
 {% block title %}Log in — Dil-e-Azaad{% endblock %}
+{% block container_class %}wrap-narrow{% endblock %}
+
+{% block head %}
+<style>
+.auth{padding:clamp(1rem,5vw,2.5rem) 0; animation:rise .45s var(--ease) both}
+.auth-head{text-align:center; margin-bottom:1.6rem}
+.auth-head h1{font-size:1.75rem; margin-bottom:.35rem}
+.auth-head p{color:var(--ink-2); font-size:.95rem}
+.alt{text-align:center; margin-top:1.3rem; font-size:.9rem; color:var(--ink-2)}
+.sep{display:flex; align-items:center; gap:.8rem; margin:1.3rem 0; color:var(--ink-3); font-size:.8rem}
+.sep::before,.sep::after{content:''; flex:1; height:1px; background:var(--line)}
+</style>
+{% endblock %}
 
 {% block content %}
-<div style="max-width:420px;margin:1.5rem auto">
-  <div class="card">
-    <h1 style="font-size:1.35rem;color:var(--green)">Welcome back</h1>
-    <p class="hint" style="margin-bottom:1.25rem">Log in to pick up where you left off.</p>
+<div class="auth">
+  <div class="auth-head">
+    <h1>Welcome back</h1>
+    <p>Pick up exactly where you left off.</p>
+  </div>
 
+  <div class="card">
     <form method="post" novalidate>
       {{ form.csrf_token }}
       <div class="field">
         {{ form.username.label }}
-        {{ form.username(autocomplete="username", autofocus=true) }}
+        {{ form.username(autocomplete="username", autofocus=true, placeholder="Your username") }}
         {% for error in form.username.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
       </div>
       <div class="field">
         {{ form.password.label }}
-        {{ form.password(autocomplete="current-password") }}
+        {{ form.password(autocomplete="current-password", placeholder="Your password") }}
         {% for error in form.password.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
       </div>
       <button class="btn btn-block" type="submit">Log in</button>
     </form>
 
-    <p class="hint" style="margin-top:1rem;text-align:center">
-      No account? <a href="{{ url_for('auth.register') }}">Sign up</a> ·
-      <a href="{{ url_for('chat.guest_page') }}">Talk without one</a>
-    </p>
+    <div class="sep">or</div>
+    <a class="btn btn-ghost btn-block" href="{{ url_for('chat.guest_page') }}">Talk without an account</a>
   </div>
+
+  <p class="alt">New here? <a href="{{ url_for('auth.register') }}">Create an account</a></p>
 </div>
 {% endblock %}

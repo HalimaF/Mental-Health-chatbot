@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Offline — Dil-e-Azaad</title>
+<meta name="color-scheme" content="light dark">
+<!--
+  Deliberately self-contained: no server render, no fonts, no images, no
+  scripts. The service worker precaches this file so the crisis numbers stay
+  reachable when the network, the host, or the whole app is unavailable.
+  Nothing here is personal, so it is safe to sit in a shared device cache.
+-->
+<style>
+:root{
+  --bg:#FAF8F4; --surface:#fff; --ink:#18211D; --ink-2:#48564F; --ink-3:#7A867F;
+  --line:#E5E1D8; --brand:#1F5F4B;
+  --accent:#B4633C; --accent-soft:#FBEFE8; --accent-line:#EFD3C2;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#111512; --surface:#191E1B; --ink:#ECEFEA; --ink-2:#B3BEB7; --ink-3:#818D86;
+    --line:#2C332E; --brand:#5FC3A1;
+    --accent:#D98A5F; --accent-soft:#2A1F18; --accent-line:#46311F;
+  }
+}
+*{box-sizing:border-box}
+body{
+  margin:0; padding:1.5rem 1rem; background:var(--bg); color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; line-height:1.6;
+  display:flex; align-items:center; justify-content:center; min-height:100vh;
+}
+.box{width:100%; max-width:460px}
+.mark{
+  width:44px;height:44px;border-radius:13px;background:linear-gradient(145deg,#2A7A5F,#1F5F4B);
+  display:grid;place-items:center;margin-bottom:1rem;
+}
+.mark svg{width:24px;height:24px}
+h1{font-size:1.4rem; margin:0 0 .35rem; letter-spacing:-.02em}
+.sub{color:var(--ink-2); font-size:.95rem; margin:0 0 1.5rem}
+.crisis{
+  background:var(--accent-soft); border:1px solid var(--accent-line);
+  border-left:3px solid var(--accent); border-radius:12px; padding:1rem 1.1rem;
+}
+.crisis h2{font-size:.95rem; color:var(--accent); margin:0 0 .6rem}
+ul{list-style:none; margin:0; padding:0}
+li a{
+  display:flex; justify-content:space-between; align-items:center; gap:1rem;
+  min-height:48px; padding:.5rem .1rem; text-decoration:none; color:var(--ink);
+  border-bottom:1px solid var(--accent-line); font-size:.95rem;
+}
+li:last-child a{border-bottom:0}
+.num{font-weight:700; color:var(--accent); white-space:nowrap; font-variant-numeric:tabular-nums}
+.note{margin-top:1.25rem; padding:.85rem 1rem; background:var(--surface); border:1px solid var(--line);
+  border-radius:12px; font-size:.87rem; color:var(--ink-2)}
+button{
+  margin-top:1rem; width:100%; min-height:46px; border-radius:999px; border:1px solid var(--brand);
+  background:var(--brand); color:var(--bg); font:inherit; font-size:.95rem; font-weight:600; cursor:pointer;
+}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="mark">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20.8 8.6a5.5 5.5 0 0 0-9.3-3A5.5 5.5 0 0 0 2.2 8.6c0 5 8.3 10.4 9.3 11 1-.6 9.3-6 9.3-11z"/>
+    </svg>
+  </div>
+
+  <h1>You're offline</h1>
+  <p class="sub">Dil-e-Azaad needs a connection to talk. These numbers do not.</p>
+
+  <div class="crisis">
+    <h2>Help that works without internet</h2>
+    <ul>
+      <li><a href="tel:1122"><span>Rescue &amp; ambulance</span><span class="num">1122</span></a></li>
+      <li><a href="tel:15"><span>Police emergency</span><span class="num">15</span></a></li>
+      <li><a href="tel:115"><span>Edhi ambulance</span><span class="num">115</span></a></li>
+      <li><a href="tel:03117786264"><span>Umang Mental Health</span><span class="num">0311-7786264</span></a></li>
+      <li><a href="tel:03041111741"><span>Rozan Counselling</span><span class="num">0304-1111741</span></a></li>
+    </ul>
+  </div>
+
+  <div class="note">
+    If you are in danger right now, please call one of these or reach someone physically
+    near you. You do not have to wait until you're back online.
+  </div>
+
+  <button type="button" onclick="location.reload()">Try again</button>
+</div>
+</body>
+</html>

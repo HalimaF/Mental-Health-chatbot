@@ -1,121 +1,134 @@
 {% extends "base.html" %}
 {% block title %}Insights — Dil-e-Azaad{% endblock %}
-{% block container_class %}container-wide{% endblock %}
+{% block container_class %}wrap-wide{% endblock %}
 
 {% block head %}
 <style>
-/* Chart tokens. Light-only by design — the whole app commits to one look.
-   Diverging pair (blue↔red, neutral gray midpoint) validated against this
-   surface: worst-pair CVD ΔE 21.6, normal-vision ΔE 32.3, both poles ≥3:1. */
+/* Chart tokens. Both themes are selected, not flipped: each set was validated
+   against the surface it actually renders on (worst-pair CVD ΔE 21.6 light /
+   19.2 dark, normal-vision 32.3 / 29.0, all poles ≥3:1). */
 .viz{
-  --surface-1:#ffffff;
-  --text-primary:#0b0b0b; --text-secondary:#52514e; --muted-ink:#898781;
-  --grid:#e1e0d9; --axis:#c3c2b7;
-  --pos:#2a78d6;      /* diverging pole — positive */
-  --neu:#898781;      /* neutral midpoint */
-  --neg:#e34948;      /* diverging pole — negative */
-  --seq:#2a78d6;      /* sequential hue for magnitude bars */
+  --pos:#2a78d6;   /* diverging pole — steadier */
+  --neu:#898781;   /* neutral midpoint, deliberately achromatic */
+  --neg:#e34948;   /* diverging pole — heavier */
+  --grid:var(--line); --axis:var(--line-2);
 }
-.toolbar{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin-bottom:1rem}
-.toolbar .spacer{margin-left:auto}
-.range{display:flex;gap:.25rem;background:var(--wash-2);border:1px solid var(--line);border-radius:999px;padding:3px}
-.range button{
-  border:0;background:transparent;font:inherit;font-size:.83rem;color:var(--muted);
-  padding:.32rem .8rem;border-radius:999px;cursor:pointer;
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .viz{--pos:#3987e5; --neg:#e66767; --neu:#898781}
 }
-.range button[aria-pressed=true]{background:var(--green);color:#fff;font-weight:500}
+:root[data-theme="dark"] .viz{--pos:#3987e5; --neg:#e66767; --neu:#898781}
 
-.tiles{display:grid;gap:.75rem;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:1rem}
-.tile{background:var(--surface-1);border:1px solid var(--line);border-radius:var(--radius);padding:1rem}
-.tile .v{font-size:1.85rem;font-weight:600;color:var(--text-primary);line-height:1.1}
-.tile .k{font-size:.8rem;color:var(--text-secondary);margin-top:.2rem}
+.page-head{display:flex; gap:1rem; align-items:flex-end; flex-wrap:wrap; margin-bottom:1.4rem}
+.page-head h1{font-size:clamp(1.5rem,4vw,2rem); margin:0}
+.page-head p{color:var(--ink-2); font-size:.92rem; margin:.25rem 0 0}
+
+.range{margin-left:auto; display:flex; gap:2px; background:var(--surface-2);
+  border:1px solid var(--line); border-radius:var(--r-full); padding:3px}
+.range button{border:0; background:transparent; font:inherit; font-size:.83rem; font-weight:500;
+  color:var(--ink-2); padding:.4rem .85rem; border-radius:var(--r-full); cursor:pointer;
+  transition:background .15s var(--ease), color .15s}
+.range button:hover{color:var(--ink)}
+.range button[aria-pressed=true]{background:var(--surface); color:var(--ink); box-shadow:var(--sh-1)}
+
+.tiles{display:grid; gap:.8rem; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); margin-bottom:1rem}
+.tile{background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg);
+  padding:1.1rem; box-shadow:var(--sh-1)}
+.tile .v{font-size:1.9rem; font-weight:650; letter-spacing:-.03em; line-height:1; color:var(--ink)}
+.tile .k{font-size:.79rem; color:var(--ink-3); margin-top:.4rem}
 
 figure{margin:0}
-figcaption{font-size:.95rem;font-weight:600;color:var(--text-primary);margin-bottom:.15rem}
-.sub{font-size:.82rem;color:var(--text-secondary);margin-bottom:.8rem}
+figcaption{font-size:1.02rem; font-weight:600; margin-bottom:.15rem}
+.sub{font-size:.85rem; color:var(--ink-3); margin-bottom:1rem}
 
-.legend{display:flex;gap:.9rem;flex-wrap:wrap;font-size:.8rem;color:var(--text-secondary);margin-top:.6rem}
-.legend span{display:inline-flex;align-items:center;gap:.35rem}
-.swatch{width:11px;height:11px;border-radius:3px;display:inline-block}
+.legend{display:flex; gap:1rem; flex-wrap:wrap; font-size:.8rem; color:var(--ink-2); margin-top:.75rem}
+.legend span{display:inline-flex; align-items:center; gap:.4rem}
+.sw{width:10px; height:10px; border-radius:3px; display:inline-block}
 
-/* Stacked sentiment bar: 2px surface gaps between segments, direct labels. */
-.mix{display:flex;height:34px;border-radius:6px;overflow:hidden;gap:2px;background:var(--surface-1)}
-.mix .seg{display:flex;align-items:center;justify-content:center;font-size:.76rem;
-  color:#fff;font-weight:600;min-width:0;overflow:hidden;white-space:nowrap}
-.mix .seg:first-child{border-radius:6px 0 0 6px}
-.mix .seg:last-child{border-radius:0 6px 6px 0}
+/* Stacked mix bar: 2px surface gaps, direct % labels so identity never rests
+   on colour alone. */
+.mix{display:flex; height:38px; border-radius:var(--r-sm); overflow:hidden; gap:2px; background:var(--surface)}
+.mix .seg{display:grid; place-items:center; font-size:.78rem; color:#fff; font-weight:650;
+  min-width:0; overflow:hidden; white-space:nowrap; transition:flex .4s var(--ease)}
 
-.chart-wrap{position:relative;overflow-x:auto}
-svg{display:block;max-width:100%;height:auto}
-.tip{
-  position:absolute;pointer-events:none;background:var(--text-primary);color:#fff;
-  font-size:.76rem;padding:.35rem .55rem;border-radius:6px;white-space:nowrap;
-  transform:translate(-50%,-115%);opacity:0;transition:opacity .1s;z-index:5;
-}
+.chart-wrap{position:relative; overflow-x:auto}
+svg{display:block; max-width:100%; height:auto}
+.tip{position:absolute; pointer-events:none; background:var(--ink); color:var(--bg);
+  font-size:.76rem; font-weight:500; padding:.4rem .6rem; border-radius:var(--r-sm);
+  white-space:nowrap; transform:translate(-50%,-130%); opacity:0; transition:opacity .12s; z-index:5;
+  box-shadow:var(--sh-2)}
 .tip.on{opacity:1}
 
-.bars{display:flex;flex-direction:column;gap:6px}
-.bar-row{display:grid;grid-template-columns:104px 1fr 42px;align-items:center;gap:.6rem;font-size:.83rem}
-.bar-row .name{color:var(--text-secondary);text-transform:capitalize;overflow:hidden;text-overflow:ellipsis}
-.bar-track{background:var(--wash-2);border-radius:4px;height:15px;overflow:hidden}
-.bar-fill{height:100%;border-radius:4px;background:var(--seq)}
-.bar-row .val{text-align:right;color:var(--text-secondary);font-variant-numeric:tabular-nums}
+.bars{display:flex; flex-direction:column; gap:8px}
+.bar-row{display:grid; grid-template-columns:110px 1fr 40px; align-items:center; gap:.7rem; font-size:.86rem}
+.bar-row .name{color:var(--ink-2); text-transform:capitalize; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.bar-track{background:var(--surface-2); border-radius:4px; height:16px; overflow:hidden}
+.bar-fill{height:100%; border-radius:4px; background:var(--pos); transition:width .5s var(--ease)}
+.bar-row .val{text-align:right; color:var(--ink-3); font-variant-numeric:tabular-nums}
 
-.obs{margin:0;padding-left:1.1rem}
-.obs li{margin-bottom:.4rem;font-size:.92rem}
-.empty{text-align:center;padding:2.5rem 1rem;color:var(--text-secondary)}
+.obs{list-style:none; margin:0; padding:0}
+.obs li{display:flex; gap:.7rem; padding:.6rem 0; font-size:.93rem; color:var(--ink-2); line-height:1.6}
+.obs li + li{border-top:1px solid var(--line)}
+.obs svg{width:16px; height:16px; color:var(--brand); flex:none; margin-top:.25rem}
 
-table{width:100%;border-collapse:collapse;font-size:.83rem;margin-top:.6rem}
-th,td{text-align:left;padding:.35rem .5rem;border-bottom:1px solid var(--grid);font-variant-numeric:tabular-nums}
-th{color:var(--text-secondary);font-weight:500}
-details summary{cursor:pointer;font-size:.83rem;color:var(--text-secondary);margin-top:.7rem}
+.empty{text-align:center; padding:3.5rem 1rem}
+.empty-ico{width:52px;height:52px;margin:0 auto 1rem;border-radius:var(--r-lg);display:grid;
+  place-items:center;background:var(--brand-soft);color:var(--brand)}
+.empty-ico svg{width:24px;height:24px}
+
+table{width:100%; border-collapse:collapse; font-size:.83rem; margin-top:.6rem}
+th,td{text-align:left; padding:.4rem .5rem; border-bottom:1px solid var(--line); font-variant-numeric:tabular-nums}
+th{color:var(--ink-3); font-weight:500}
+details summary{cursor:pointer; font-size:.82rem; color:var(--ink-3); margin-top:.8rem}
+@media(max-width:560px){.bar-row{grid-template-columns:88px 1fr 34px}}
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="viz">
-  <div class="toolbar">
-    <h1 style="font-size:1.35rem;color:var(--green);margin:0">Your insights</h1>
-    <div class="spacer"></div>
+  <div class="page-head">
+    <div>
+      <h1>Your insights</h1>
+      <p>Patterns in what you've written. Observations, never a diagnosis.</p>
+    </div>
     <div class="range" role="group" aria-label="Time range">
-      <button type="button" data-days="7">7 days</button>
-      <button type="button" data-days="30" aria-pressed="true">30 days</button>
-      <button type="button" data-days="90">90 days</button>
+      <button type="button" data-days="7">7d</button>
+      <button type="button" data-days="30" aria-pressed="true">30d</button>
+      <button type="button" data-days="90">90d</button>
     </div>
   </div>
 
   <div id="body" hidden>
     <div class="tiles">
       <div class="tile"><div class="v" id="t-messages">—</div><div class="k">Messages in range</div></div>
-      <div class="tile"><div class="v" id="t-streak">—</div><div class="k">Current check-in streak</div></div>
+      <div class="tile"><div class="v" id="t-streak">—</div><div class="k">Current streak</div></div>
       <div class="tile"><div class="v" id="t-total">—</div><div class="k">Total check-ins</div></div>
       <div class="tile"><div class="v" id="t-flagged">—</div><div class="k">Higher-distress messages</div></div>
     </div>
 
     <div class="card">
       <figure>
-        <figcaption>Overall tone of your messages</figcaption>
-        <div class="sub">How the messages in this range were classified.</div>
+        <figcaption>Overall tone</figcaption>
+        <div class="sub">How the messages in this period were read.</div>
         <div class="mix" id="mix" role="img" aria-label="Sentiment breakdown"></div>
         <div class="legend">
-          <span><i class="swatch" style="background:var(--pos)"></i>Positive</span>
-          <span><i class="swatch" style="background:var(--neu)"></i>Neutral</span>
-          <span><i class="swatch" style="background:var(--neg)"></i>Negative</span>
+          <span><i class="sw" style="background:var(--pos)"></i>Steadier</span>
+          <span><i class="sw" style="background:var(--neu)"></i>Neutral</span>
+          <span><i class="sw" style="background:var(--neg)"></i>Heavier</span>
         </div>
       </figure>
     </div>
 
     <div class="card">
       <figure>
-        <figcaption>Mood trend</figcaption>
-        <div class="sub">Daily average tone. Above the line is steadier, below is heavier.</div>
+        <figcaption>Mood over time</figcaption>
+        <div class="sub">Daily average. Above the centre line is steadier, below is heavier.</div>
         <div class="chart-wrap" id="trend-wrap">
-          <svg id="trend" viewBox="0 0 720 220" preserveAspectRatio="xMidYMid meet" role="img"
+          <svg id="trend" viewBox="0 0 720 230" preserveAspectRatio="xMidYMid meet" role="img"
                aria-label="Line chart of daily average mood"></svg>
           <div class="tip" id="tip"></div>
         </div>
         <details>
-          <summary>View as table</summary>
+          <summary>View as a table</summary>
           <table id="trend-table"><thead><tr><th>Date</th><th>Score</th><th>Messages</th></tr></thead><tbody></tbody></table>
         </details>
       </figure>
@@ -123,217 +136,177 @@ details summary{cursor:pointer;font-size:.83rem;color:var(--text-secondary);marg
 
     <div class="card">
       <figure>
-        <figcaption>Emotions that came up most</figcaption>
-        <div class="sub">Detected across your messages in this range.</div>
+        <figcaption>Emotions that came up</figcaption>
+        <div class="sub">Detected across your messages in this period.</div>
         <div class="bars" id="emotions"></div>
       </figure>
     </div>
 
     <div class="card">
-      <h2 style="font-size:1.05rem;margin-bottom:.5rem">What stands out</h2>
+      <h2 style="font-size:1.02rem; margin-bottom:.4rem">What stands out</h2>
       <ul class="obs" id="observations"></ul>
-      <p class="hint" style="margin:.8rem 0 0">
-        These are observations about what you've written, not a diagnosis. Only a qualified
+      <p class="hint" style="margin-top:1rem">
+        These describe what you've written — they are not a diagnosis. Only a qualified
         professional can assess your mental health.
       </p>
     </div>
   </div>
 
   <div class="card empty" id="empty" hidden>
-    <p>No data for this period yet.</p>
+    <div class="empty-ico">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 3 5-7 4 5"/><path d="M3 21h18"/></svg>
+    </div>
+    <h2 style="font-size:1.1rem">Nothing to show yet</h2>
+    <p class="hint" style="margin-bottom:1.3rem">Once you've chatted a few times, patterns will start appearing here.</p>
     <a class="btn" href="{{ url_for('chat.chat_page') }}">Start a conversation</a>
   </div>
 
-  <div class="card empty" id="loading"><p>Loading your insights…</p></div>
+  <div class="card empty" id="loading"><p class="hint">Loading your insights…</p></div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
 (function () {
-  const SVG = 'http://www.w3.org/2000/svg';
-  const el = function (id) { return document.getElementById(id); };
-  let days = 30;
-
-  function css(name) {
-    return getComputedStyle(document.querySelector('.viz')).getPropertyValue(name).trim();
-  }
+  var NS = 'http://www.w3.org/2000/svg';
+  var el = function (id) { return document.getElementById(id); };
+  var days = 30;
+  function css(n){ return getComputedStyle(document.querySelector('.viz')).getPropertyValue(n).trim(); }
 
   function renderMix(counts, total) {
-    const mix = el('mix');
-    mix.replaceChildren();
+    var mix = el('mix'); mix.replaceChildren();
     if (!total) return;
-    [['positive', css('--pos')], ['neutral', css('--neu')], ['negative', css('--neg')]]
-      .forEach(function (pair) {
-        const n = counts[pair[0]] || 0;
+    [['positive', css('--pos'), 'Steadier'], ['neutral', css('--neu'), 'Neutral'], ['negative', css('--neg'), 'Heavier']]
+      .forEach(function (p) {
+        var n = counts[p[0]] || 0;
         if (!n) return;
-        const pct = Math.round((n / total) * 100);
-        const seg = document.createElement('div');
-        seg.className = 'seg';
-        seg.style.background = pair[1];
-        seg.style.flex = n;
-        // Direct label doubles as the secondary encoding, so identity is
-        // never carried by color alone.
+        var pct = Math.round((n / total) * 100);
+        var seg = document.createElement('div');
+        seg.className = 'seg'; seg.style.background = p[1]; seg.style.flex = n;
         seg.textContent = pct >= 9 ? pct + '%' : '';
-        seg.title = pair[0] + ': ' + n + ' (' + pct + '%)';
+        seg.title = p[2] + ': ' + n + ' (' + pct + '%)';
         mix.appendChild(seg);
       });
   }
 
   function renderTrend(trend) {
-    const svg = el('trend');
-    svg.replaceChildren();
-    const W = 720, H = 220, L = 38, R = 14, T = 14, B = 30;
-    const iw = W - L - R, ih = H - T - B;
-
+    var svg = el('trend'); svg.replaceChildren();
+    var W = 720, H = 230, L = 54, R = 16, T = 16, B = 32;
+    var iw = W - L - R, ih = H - T - B;
     if (!trend.length) return;
 
-    const x = function (i) {
-      return trend.length === 1 ? L + iw / 2 : L + (i / (trend.length - 1)) * iw;
-    };
-    const y = function (v) { return T + ((1 - v) / 2) * ih; };  // score is -1..1
+    var x = function (i) { return trend.length === 1 ? L + iw / 2 : L + (i / (trend.length - 1)) * iw; };
+    var y = function (v) { return T + ((1 - v) / 2) * ih; };
 
-    function line(x1, y1, x2, y2, stroke, w, dash) {
-      const n = document.createElementNS(SVG, 'line');
-      n.setAttribute('x1', x1); n.setAttribute('y1', y1);
-      n.setAttribute('x2', x2); n.setAttribute('y2', y2);
-      n.setAttribute('stroke', stroke); n.setAttribute('stroke-width', w || 1);
-      if (dash) n.setAttribute('stroke-dasharray', dash);
-      svg.appendChild(n); return n;
+    function line(x1,y1,x2,y2,st,w,dash){
+      var n=document.createElementNS(NS,'line');
+      n.setAttribute('x1',x1);n.setAttribute('y1',y1);n.setAttribute('x2',x2);n.setAttribute('y2',y2);
+      n.setAttribute('stroke',st);n.setAttribute('stroke-width',w||1);
+      if(dash)n.setAttribute('stroke-dasharray',dash);
+      svg.appendChild(n);return n;
     }
-    function text(tx, ty, str, anchor, fill, size) {
-      const n = document.createElementNS(SVG, 'text');
-      n.setAttribute('x', tx); n.setAttribute('y', ty);
-      n.setAttribute('text-anchor', anchor || 'middle');
-      n.setAttribute('fill', fill || css('--muted-ink'));
-      n.setAttribute('font-size', size || 10);
-      n.textContent = str; svg.appendChild(n); return n;
+    function text(tx,ty,s,anchor,fill,size){
+      var n=document.createElementNS(NS,'text');
+      n.setAttribute('x',tx);n.setAttribute('y',ty);n.setAttribute('text-anchor',anchor||'middle');
+      n.setAttribute('fill',fill||css('--ink-3'));n.setAttribute('font-size',size||10);
+      n.setAttribute('font-family','inherit');
+      n.textContent=s;svg.appendChild(n);return n;
     }
 
-    // Recessive grid; the zero line is the one that carries meaning.
+    // Recessive grid; the zero line is the only one carrying meaning.
     [1, 0.5, 0, -0.5, -1].forEach(function (v) {
-      const yy = y(v);
-      const isZero = v === 0;
-      line(L, yy, W - R, yy, isZero ? css('--axis') : css('--grid'), isZero ? 1.5 : 1);
-      text(L - 7, yy + 3, v === 1 ? 'steadier' : v === -1 ? 'heavier' : (v === 0 ? '0' : ''),
-           'end', css('--muted-ink'), 9);
+      var yy = y(v), zero = v === 0;
+      line(L, yy, W - R, yy, zero ? css('--axis') : css('--grid'), zero ? 1.5 : 1);
+      if (v === 1 || v === -1 || zero) {
+        text(L - 9, yy + 3.5, v === 1 ? 'steadier' : v === -1 ? 'heavier' : 'even', 'end', css('--ink-3'), 9.5);
+      }
     });
 
-    let d = '';
+    var d = '';
     trend.forEach(function (p, i) { d += (i ? ' L' : 'M') + x(i) + ' ' + y(p.score); });
-    const path = document.createElementNS(SVG, 'path');
-    path.setAttribute('d', d);
-    path.setAttribute('fill', 'none');
-    path.setAttribute('stroke', css('--pos'));
-    path.setAttribute('stroke-width', 2);
-    path.setAttribute('stroke-linejoin', 'round');
-    path.setAttribute('stroke-linecap', 'round');
+    var path = document.createElementNS(NS, 'path');
+    path.setAttribute('d', d); path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', css('--pos')); path.setAttribute('stroke-width', 2);
+    path.setAttribute('stroke-linejoin', 'round'); path.setAttribute('stroke-linecap', 'round');
     svg.appendChild(path);
 
     trend.forEach(function (p, i) {
-      const c = document.createElementNS(SVG, 'circle');
+      var c = document.createElementNS(NS, 'circle');
       c.setAttribute('cx', x(i)); c.setAttribute('cy', y(p.score)); c.setAttribute('r', 4);
       c.setAttribute('fill', p.score < 0 ? css('--neg') : css('--pos'));
-      // 2px surface ring keeps overlapping marks legible.
-      c.setAttribute('stroke', css('--surface-1')); c.setAttribute('stroke-width', 2);
+      // 2px surface ring keeps overlapping points legible.
+      c.setAttribute('stroke', css('--surface')); c.setAttribute('stroke-width', 2);
       svg.appendChild(c);
     });
 
-    // Date labels only at the ends — never one per point.
     text(x(0), H - 10, trend[0].date.slice(5), 'start');
     if (trend.length > 1) text(x(trend.length - 1), H - 10, trend[trend.length - 1].date.slice(5), 'end');
 
-    // Crosshair + tooltip.
-    const wrap = el('trend-wrap'), tip = el('tip');
-    const cross = line(L, T, L, H - B, css('--axis'), 1, '3 3');
+    var wrap = el('trend-wrap'), tip = el('tip');
+    var cross = line(L, T, L, H - B, css('--axis'), 1, '3 3');
     cross.style.opacity = 0;
-    const hit = document.createElementNS(SVG, 'rect');
+    var hit = document.createElementNS(NS, 'rect');
     hit.setAttribute('x', L); hit.setAttribute('y', T);
     hit.setAttribute('width', iw); hit.setAttribute('height', ih);
-    hit.setAttribute('fill', 'transparent');
-    svg.appendChild(hit);
+    hit.setAttribute('fill', 'transparent'); svg.appendChild(hit);
 
-    svg.addEventListener('mousemove', function (ev) {
-      const box = svg.getBoundingClientRect();
-      const sx = (ev.clientX - box.left) * (W / box.width);
-      if (sx < L || sx > W - R) { cross.style.opacity = 0; tip.classList.remove('on'); return; }
-      let best = 0, bd = Infinity;
-      trend.forEach(function (p, i) {
-        const dd = Math.abs(x(i) - sx);
-        if (dd < bd) { bd = dd; best = i; }
-      });
-      const p = trend[best];
+    function move(clientX) {
+      var box = svg.getBoundingClientRect();
+      var sx = (clientX - box.left) * (W / box.width);
+      if (sx < L - 10 || sx > W - R + 10) { cross.style.opacity = 0; tip.classList.remove('on'); return; }
+      var best = 0, bd = Infinity;
+      trend.forEach(function (p, i) { var dd = Math.abs(x(i) - sx); if (dd < bd) { bd = dd; best = i; } });
+      var p = trend[best];
       cross.setAttribute('x1', x(best)); cross.setAttribute('x2', x(best));
-      cross.style.opacity = 1;
+      cross.style.opacity = .8;
       tip.textContent = p.date + ' · ' + p.score.toFixed(2) + ' · ' + p.messages + ' msg';
       tip.classList.add('on');
       tip.style.left = (x(best) / W * box.width) + 'px';
       tip.style.top = (y(p.score) / H * box.height) + 'px';
-    });
-    svg.addEventListener('mouseleave', function () {
-      cross.style.opacity = 0; tip.classList.remove('on');
-    });
+    }
+    svg.addEventListener('mousemove', function (e) { move(e.clientX); });
+    svg.addEventListener('touchmove', function (e) { if (e.touches[0]) move(e.touches[0].clientX); }, { passive: true });
+    svg.addEventListener('mouseleave', function () { cross.style.opacity = 0; tip.classList.remove('on'); });
 
-    const tbody = el('trend-table').querySelector('tbody');
+    var tbody = el('trend-table').querySelector('tbody');
     tbody.replaceChildren();
     trend.forEach(function (p) {
-      const tr = document.createElement('tr');
+      var tr = document.createElement('tr');
       [p.date, p.score.toFixed(2), p.messages].forEach(function (v) {
-        const td = document.createElement('td'); td.textContent = v; tr.appendChild(td);
+        var td = document.createElement('td'); td.textContent = v; tr.appendChild(td);
       });
       tbody.appendChild(tr);
     });
   }
 
   function renderEmotions(top) {
-    const box = el('emotions');
-    box.replaceChildren();
+    var box = el('emotions'); box.replaceChildren();
     if (!top.length) {
-      const p = document.createElement('p');
-      p.className = 'hint';
-      p.textContent = 'No emotions detected yet in this range.';
-      box.appendChild(p);
-      return;
+      var p = document.createElement('p');
+      p.className = 'hint'; p.textContent = 'No emotions detected in this period yet.';
+      box.appendChild(p); return;
     }
-    const max = top[0][1];
+    var max = top[0][1];
     top.forEach(function (pair) {
-      const row = document.createElement('div');
-      row.className = 'bar-row';
-      const name = document.createElement('div');
-      name.className = 'name';
+      var row = document.createElement('div'); row.className = 'bar-row';
+      var name = document.createElement('div'); name.className = 'name';
       name.textContent = pair[0].replace(/_/g, ' ');
-      const track = document.createElement('div');
-      track.className = 'bar-track';
-      const fill = document.createElement('div');
-      fill.className = 'bar-fill';
+      var track = document.createElement('div'); track.className = 'bar-track';
+      var fill = document.createElement('div'); fill.className = 'bar-fill';
       fill.style.width = Math.max(2, (pair[1] / max) * 100) + '%';
       track.appendChild(fill);
-      const val = document.createElement('div');
-      val.className = 'val';
-      val.textContent = pair[1];
-      row.append(name, track, val);
-      box.appendChild(row);
+      var val = document.createElement('div'); val.className = 'val'; val.textContent = pair[1];
+      row.append(name, track, val); box.appendChild(row);
     });
   }
 
   async function load() {
-    el('loading').hidden = false;
-    el('body').hidden = true;
-    el('empty').hidden = true;
-
-    const res = await App.getJSON('/api/insights?days=' + days);
+    el('loading').hidden = false; el('body').hidden = true; el('empty').hidden = true;
+    var res = await App.getJSON('/api/insights?days=' + days);
     el('loading').hidden = true;
+    if (!res.ok || !res.data || !res.data.total_messages) { el('empty').hidden = false; return; }
 
-    if (!res.ok || !res.data) {
-      el('empty').hidden = false;
-      return;
-    }
-    const d = res.data;
-    if (!d.total_messages) {
-      el('empty').hidden = false;
-      return;
-    }
-
+    var d = res.data;
     el('body').hidden = false;
     el('t-messages').textContent = d.total_messages;
     el('t-streak').textContent = d.streak.current_streak;
@@ -344,17 +317,17 @@ details summary{cursor:pointer;font-size:.83rem;color:var(--text-secondary);marg
     renderTrend(d.trend || []);
     renderEmotions(d.top_emotions || []);
 
-    const obs = el('observations');
-    obs.replaceChildren();
+    var obs = el('observations'); obs.replaceChildren();
     (d.observations || []).forEach(function (o) {
-      const li = document.createElement('li');
-      li.textContent = o;
-      obs.appendChild(li);
+      var li = document.createElement('li');
+      li.appendChild(App.svg('M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'));
+      var s = document.createElement('span'); s.textContent = o;
+      li.appendChild(s); obs.appendChild(li);
     });
   }
 
   document.querySelector('.range').addEventListener('click', function (e) {
-    const b = e.target.closest('button[data-days]');
+    var b = e.target.closest('button[data-days]');
     if (!b) return;
     document.querySelectorAll('.range button').forEach(function (x) {
       x.setAttribute('aria-pressed', String(x === b));
@@ -362,6 +335,13 @@ details summary{cursor:pointer;font-size:.83rem;color:var(--text-secondary);marg
     days = parseInt(b.getAttribute('data-days'), 10);
     load();
   });
+
+  // Chart colours come from CSS custom properties, so a theme switch has to
+  // repaint the SVG -- it can't inherit like the rest of the page does.
+  var mq = window.matchMedia('(prefers-color-scheme: dark)');
+  if (mq.addEventListener) mq.addEventListener('change', load);
+  var btn = document.getElementById('themeBtn');
+  if (btn) btn.addEventListener('click', function () { setTimeout(load, 30); });
 
   load();
 })();

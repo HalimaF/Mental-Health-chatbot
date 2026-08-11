@@ -1,49 +1,108 @@
 {% extends "base.html" %}
-{% block title %}Crisis resources — Dil-e-Azaad{% endblock %}
+{% block title %}Get help — Dil-e-Azaad{% endblock %}
+
+{% block head %}
+<style>
+.page-head{max-width:52ch; margin-bottom:1.5rem}
+.page-head h1{font-size:clamp(1.7rem,5vw,2.3rem); margin-bottom:.4rem}
+.page-head p{color:var(--ink-2)}
+
+/* Emergency numbers get the largest tap targets on the site. Someone reaching
+   this page in distress should not have to aim. */
+.now{background:var(--accent-soft); border:1px solid var(--accent-line);
+  border-left:3px solid var(--accent); border-radius:var(--r-lg); padding:1.3rem; margin-bottom:1.25rem}
+.now h2{color:var(--accent); font-size:1.05rem; display:flex; gap:.5rem; align-items:center; margin-bottom:.9rem}
+.now h2 svg{width:19px; height:19px}
+.now-grid{display:grid; gap:.6rem; grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+.now-grid a{
+  display:flex; flex-direction:column; gap:.15rem; padding:.95rem 1.1rem;
+  background:var(--surface); border:1px solid var(--accent-line); border-radius:var(--r-md);
+  box-shadow:var(--sh-1); transition:transform .14s var(--ease), box-shadow .2s;
+}
+.now-grid a:hover{text-decoration:none; transform:translateY(-2px); box-shadow:var(--sh-2)}
+.now-grid .num{font-size:1.35rem; font-weight:700; color:var(--accent); font-variant-numeric:tabular-nums; letter-spacing:-.02em}
+.now-grid .who{font-size:.83rem; color:var(--ink-2)}
+
+.res-list{list-style:none; margin:0; padding:0}
+.res-list li + li{border-top:1px solid var(--line)}
+.res-list a,.res-list .plain{
+  display:flex; gap:1rem; align-items:center; justify-content:space-between;
+  padding:.95rem .25rem; color:var(--ink);
+}
+.res-list a:hover{text-decoration:none; color:var(--brand)}
+.res-list .name{font-weight:500; font-size:.95rem}
+.res-list .contact{color:var(--brand); font-weight:600; font-size:.92rem; white-space:nowrap; font-variant-numeric:tabular-nums}
+.res-list .plain .contact{color:var(--ink-2)}
+
+.helper{background:var(--brand-soft); border:1px solid var(--brand-line)}
+.helper h2{color:var(--brand)}
+.steps{list-style:none; margin:.8rem 0 0; padding:0; counter-reset:s}
+.steps li{position:relative; padding-left:2.2rem; margin-bottom:.9rem; font-size:.93rem; color:var(--ink-2); line-height:1.6}
+.steps li::before{
+  counter-increment:s; content:counter(s);
+  position:absolute; left:0; top:0; width:24px; height:24px; border-radius:50%;
+  background:var(--brand); color:var(--brand-ink); display:grid; place-items:center;
+  font-size:.76rem; font-weight:700;
+}
+.steps strong{color:var(--ink)}
+</style>
+{% endblock %}
 
 {% block content %}
-<h1 style="font-size:1.45rem;color:var(--green)">Getting help from a person</h1>
-<p class="hint" style="margin-bottom:1.25rem">
-  Dil-e-Azaad is an AI and cannot intervene in an emergency. These can.
-</p>
+<div class="page-head">
+  <h1>Getting help from a person</h1>
+  <p>Dil-e-Azaad is an AI and can't intervene in an emergency. These can. Tap any number to call.</p>
+</div>
 
-<div class="crisis">
-  <h3>Immediate danger</h3>
-  <ul>
-    <li><strong>Emergency services (Pakistan):</strong> 15 or 1122</li>
-    <li><strong>Edhi Foundation ambulance:</strong> 115</li>
-  </ul>
+<div class="now">
+  <h2>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>
+    </svg>
+    If you are in danger right now
+  </h2>
+  <div class="now-grid">
+    <a href="tel:1122"><span class="num">1122</span><span class="who">Rescue &amp; ambulance</span></a>
+    <a href="tel:15"><span class="num">15</span><span class="who">Police emergency</span></a>
+    <a href="tel:115"><span class="num">115</span><span class="who">Edhi ambulance</span></a>
+  </div>
 </div>
 
 <div class="card">
-  <h2 style="font-size:1.05rem;color:var(--green)">Helplines and support</h2>
-  <ul style="padding-left:1.1rem;margin:.5rem 0 0">
+  <h2 style="font-size:1.05rem; margin-bottom:.3rem">Helplines &amp; support</h2>
+  <p class="hint" style="margin-bottom:.5rem">Free and confidential.</p>
+  <ul class="res-list">
     {% for r in resources %}
-      <li style="margin-bottom:.45rem">
-        <strong>{{ r.name }}:</strong>
+      <li>
         {% if r.contact.startswith('http') %}
-          <a href="{{ r.contact }}" target="_blank" rel="noopener noreferrer">{{ r.contact }}</a>
+          <a href="{{ r.contact }}" target="_blank" rel="noopener noreferrer">
+            <span class="name">{{ r.name }}</span><span class="contact">Open ↗</span>
+          </a>
+        {% elif r.contact[0].isdigit() or r.contact[0] == '+' %}
+          <a href="tel:{{ r.contact | replace('-','') | replace(' ','') }}">
+            <span class="name">{{ r.name }}</span><span class="contact">{{ r.contact }}</span>
+          </a>
         {% else %}
-          {{ r.contact }}
+          <div class="plain"><span class="name">{{ r.name }}</span><span class="contact">{{ r.contact }}</span></div>
         {% endif %}
       </li>
     {% endfor %}
   </ul>
 </div>
 
-<div class="card">
-  <h2 style="font-size:1.05rem;color:var(--green)">If you're supporting someone else</h2>
-  <p style="font-size:.92rem;margin:0">
-    Ask directly and calmly whether they are thinking about suicide — research is clear that
-    asking does not plant the idea, and it often brings relief. Listen without rushing to fix
-    it. Help them make contact with a professional rather than making the call for them where
-    you can. Remove access to means if it is safe to do so. And take care of yourself too:
-    carrying this alone is heavy.
-  </p>
+<div class="card helper">
+  <h2 style="font-size:1.05rem">If you're worried about someone else</h2>
+  <ol class="steps">
+    <li><strong>Ask directly.</strong> "Are you thinking about suicide?" Research is clear that asking does not plant the idea — it usually brings relief.</li>
+    <li><strong>Listen without fixing.</strong> You don't need the right answer. Staying calm and not flinching is the help.</li>
+    <li><strong>Help them make contact.</strong> Sit with them while they call, rather than calling on their behalf.</li>
+    <li><strong>Reduce access to means</strong> if it's safe for you to do so.</li>
+    <li><strong>Look after yourself too.</strong> Carrying someone else's crisis is heavy, and you're allowed to need support for it.</li>
+  </ol>
 </div>
 
 <div class="disclaimer" style="margin-top:1rem">
-  Helpline numbers change. If one does not connect, please try another or call emergency
-  services directly.
+  Helpline numbers change over time. If one doesn't connect, please try another or call
+  emergency services directly.
 </div>
 {% endblock %}

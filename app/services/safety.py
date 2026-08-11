@@ -57,6 +57,12 @@ IMMINENT_PATTERNS = _pattern(
 # Direct suicidal ideation or self-harm, without a stated plan.
 HIGH_PATTERNS = _pattern(
     r"\bkill(?:ing)? myself\b",
+    # Third-person phrasing still describes suicidal intent and must register.
+    # The third-party rule below decides whose risk it is; this decides that
+    # there is risk at all. Without it, "my flatmate is killing herself" scored
+    # NONE because only the first-person form was listed.
+    r"\bkill(?:ing)? (?:him|her|them|it)self\b",
+    r"\bend(?:ing)? (?:his|her|their) life\b",
     r"\bend(?:ing)? my life\b",
     r"\btake my own life\b",
     r"\bcommit suicide\b",
@@ -142,15 +148,29 @@ INFORMATIONAL_PATTERNS = _pattern(
     r"\bwriting (?:a|an) (?:essay|paper|story|report|assignment)\b",
     r"\bfor (?:my|a) (?:class|school|university|thesis|homework|project)\b",
     r"\bwhat (?:is|are) the (?:signs|symptoms|warning)\b",
-    r"\bhow (?:do|can) i help (?:my|someone|a friend)\b",
+    # "How do I help my sister who wants to die" is a real person in danger, not
+    # an academic question. It belongs to the third-party rule, which supports
+    # the helper; treating it as informational capped it at LOW and withheld
+    # the resources they were explicitly asking for.
 )
 
 # Someone else's crisis. Still serious, but the response differs: support the
 # helper and give them referral routes rather than treating them as at-risk.
 THIRD_PARTY_PATTERNS = _pattern(
-    r"\bmy (?:friend|brother|sister|mother|father|mom|dad|son|daughter|cousin|partner|husband|wife|colleague|student|patient)\b",
-    r"\b(?:he|she|they) (?:is|are|was|were|said|told me|keeps?)\b[^.]{0,40}\b(?:suicidal|kill (?:him|her|them)self|want(?:s|ed)? to die)\b",
-    r"\bsomeone i know\b",
+    # Household and peer relations matter as much as family here -- a student
+    # worried about a roommate is one of the most common versions of this
+    # message, and omitting the word meant it was handled as the user's own risk.
+    r"\bmy (?:friend|best friend|brother|sister|sibling|mother|father|mom|mum|dad|"
+    r"son|daughter|child|kid|cousin|aunt|uncle|niece|nephew|partner|husband|wife|"
+    r"fiance[e]?|girlfriend|boyfriend|roommate|room[- ]?mate|flatmate|housemate|"
+    r"classmate|coursemate|batchmate|colleague|coworker|co[- ]worker|neighbou?r|"
+    r"student|patient|client|teammate|cousin sister|cousin brother)\b",
+    r"\bmy (?:younger|older|little|big|elder) (?:brother|sister|cousin)\b",
+    r"\b(?:he|she|they) (?:is|are|was|were|said|says|told me|keeps?|has been)\b[^.]{0,40}"
+    r"\b(?:suicidal|kill (?:him|her|them)self|want(?:s|ed)? to die|end (?:his|her|their) life)\b",
+    r"\bsomeone (?:i know|close to me|in my (?:family|class|hostel))\b",
+    r"\bhow (?:do|can|should) i (?:help|support|talk to) (?:my|him|her|them|someone)\b",
+    r"\bworried about (?:my|him|her|them|someone)\b",
 )
 
 

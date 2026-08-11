@@ -6,7 +6,11 @@ Flask-Limiter==3.8.0
 SQLAlchemy==2.0.35
 Werkzeug==3.0.4
 psycopg2-binary==2.9.9
-huggingface_hub==0.26.2
+# Must be >=1.0. Releases before that call api-inference.huggingface.co, which
+# has been retired and no longer resolves in DNS -- every inference call fails.
+# Current versions route through router.huggingface.co (Inference Providers).
+# Verified working on 1.27.0.
+huggingface_hub>=1.27.0,<2.0
 cryptography==43.0.3
 python-dotenv==1.0.1
 email-validator==2.2.0

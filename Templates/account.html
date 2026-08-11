@@ -1,29 +1,90 @@
 {% extends "base.html" %}
 {% block title %}Account — Dil-e-Azaad{% endblock %}
 
+{% block head %}
+<style>
+.page-head{margin-bottom:1.5rem}
+.page-head h1{font-size:clamp(1.5rem,4vw,2rem); margin-bottom:.3rem}
+.page-head p{color:var(--ink-2); font-size:.95rem}
+
+.profile{display:flex; gap:1rem; align-items:center}
+.avatar{
+  width:52px; height:52px; flex:none; border-radius:50%;
+  background:linear-gradient(145deg,var(--brand-2),var(--brand)); color:#fff;
+  display:grid; place-items:center; font-size:1.3rem; font-weight:650; box-shadow:var(--sh-1);
+}
+.profile-txt strong{display:block; font-size:1.05rem}
+.profile-txt span{font-size:.88rem; color:var(--ink-2)}
+
+.rows{list-style:none; margin:.9rem 0 0; padding:0}
+.rows li{display:flex; justify-content:space-between; gap:1rem; padding:.6rem 0;
+  border-top:1px solid var(--line); font-size:.9rem}
+.rows .k{color:var(--ink-3)}
+.rows .v{color:var(--ink); font-weight:500}
+
+.sec-title{display:flex; gap:.55rem; align-items:center; font-size:1.05rem; margin-bottom:.3rem}
+.sec-title svg{width:18px; height:18px; color:var(--ink-3)}
+.danger-card{border-color:var(--danger-line); background:var(--danger-soft)}
+.danger-card .sec-title{color:var(--danger)}
+.danger-card .sec-title svg{color:var(--danger)}
+.danger-card input{background:var(--surface)}
+
+details.reveal{margin-top:.9rem}
+details.reveal > summary{
+  cursor:pointer; list-style:none; display:inline-flex; align-items:center; gap:.4rem;
+  font-size:.88rem; font-weight:600; color:var(--danger);
+}
+details.reveal > summary::-webkit-details-marker{display:none}
+details.reveal > summary::after{content:'▾'; font-size:.7rem; transition:transform .2s}
+details.reveal[open] > summary::after{transform:rotate(180deg)}
+details.reveal > div{margin-top:1rem}
+</style>
+{% endblock %}
+
 {% block content %}
-<h1 style="font-size:1.35rem;color:var(--green)">Your account</h1>
-
-<div class="card">
-  <h2 style="font-size:1.05rem">Details</h2>
-  <p class="hint" style="margin:0">
-    <strong>Username:</strong> {{ user.username }}<br>
-    <strong>Email:</strong> {{ user.email }}<br>
-    <strong>Member since:</strong> {{ user.created_at.strftime('%d %B %Y') if user.created_at else '—' }}
-  </p>
+<div class="page-head">
+  <h1>Your account</h1>
+  <p>Everything we hold about you, and how to take it back.</p>
 </div>
 
 <div class="card">
-  <h2 style="font-size:1.05rem">Your data</h2>
-  <p class="hint">
-    Every message you and Dil-e-Azaad exchange is encrypted before it is stored. You can
-    download all of it, or delete it permanently — we keep no copy after deletion.
-  </p>
-  <a class="btn btn-outline" href="{{ url_for('wellness.api_export') }}">Download my data (JSON)</a>
+  <div class="profile">
+    <div class="avatar" aria-hidden="true">{{ user.username[0] | upper }}</div>
+    <div class="profile-txt">
+      <strong>{{ user.username }}</strong>
+      <span>{{ user.email }}</span>
+    </div>
+  </div>
+  <ul class="rows">
+    <li><span class="k">Member since</span><span class="v">{{ user.created_at.strftime('%d %B %Y') if user.created_at else '—' }}</span></li>
+    <li><span class="k">Last login</span><span class="v">{{ user.last_login.strftime('%d %b %Y, %H:%M') if user.last_login else '—' }}</span></li>
+  </ul>
 </div>
 
 <div class="card">
-  <h2 style="font-size:1.05rem">Change password</h2>
+  <div class="sec-title">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    <h2 style="margin:0; font-size:inherit">Your data</h2>
+  </div>
+  <p class="hint" style="margin-bottom:1rem">
+    Every message is encrypted before it's stored. Download all of it, or erase it
+    permanently — after deletion we keep no copy.
+  </p>
+  <div class="row">
+    <a class="btn btn-ghost btn-sm" href="{{ url_for('wellness.api_export') }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+      Download my data
+    </a>
+    <a class="btn btn-ghost btn-sm" href="{{ url_for('chat.history_page') }}">View history</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="sec-title">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    <h2 style="margin:0; font-size:inherit">Change password</h2>
+  </div>
+  <p class="hint" style="margin-bottom:1rem">Changing it signs you out on every device.</p>
   <form method="post" action="{{ url_for('auth.change_password') }}" novalidate>
     {{ password_form.csrf_token }}
     <div class="field">
@@ -32,36 +93,56 @@
     </div>
     <div class="field">
       {{ password_form.password.label }}
-      {{ password_form.password(autocomplete="new-password") }}
-      <div class="hint" style="margin-top:.3rem">At least 12 characters, using three of: lowercase, uppercase, a number, a symbol.</div>
+      {{ password_form.password(autocomplete="new-password", placeholder="At least 12 characters") }}
     </div>
     <div class="field">
       {{ password_form.confirm.label }}
       {{ password_form.confirm(autocomplete="new-password") }}
     </div>
     <button class="btn" type="submit">Update password</button>
-    <p class="hint" style="margin:.6rem 0 0">Changing your password signs you out everywhere.</p>
   </form>
 </div>
 
-<div class="card" style="border-color:var(--danger-line)">
-  <h2 style="font-size:1.05rem;color:var(--danger)">Delete account</h2>
-  <p class="hint">
-    This permanently removes your account, every conversation, all mood data and all
-    check-ins. It cannot be undone and we cannot recover it afterwards.
-  </p>
-  <form method="post" action="{{ url_for('auth.delete_account') }}" novalidate
-        onsubmit="return confirm('Permanently delete your account and all of your data? This cannot be undone.')">
-    {{ delete_form.csrf_token }}
-    <div class="field">
-      {{ delete_form.password.label }}
-      {{ delete_form.password(autocomplete="current-password") }}
-    </div>
-    <div class="field">
-      {{ delete_form.confirm_text.label }}
-      {{ delete_form.confirm_text(placeholder="DELETE") }}
-    </div>
-    <button class="btn btn-danger" type="submit">Delete everything permanently</button>
+<div class="card">
+  <div class="sec-title">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+    <h2 style="margin:0; font-size:inherit">Sign out</h2>
+  </div>
+  <p class="hint" style="margin-bottom:1rem">End this session on this device.</p>
+  <form method="post" action="{{ url_for('auth.logout') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn btn-ghost" type="submit">Log out</button>
   </form>
+</div>
+
+<div class="card danger-card">
+  <div class="sec-title">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg>
+    <h2 style="margin:0; font-size:inherit">Delete account</h2>
+  </div>
+  <p class="hint" style="margin:0">
+    This permanently removes your account, every conversation, all mood data and all
+    check-ins. It cannot be undone, and we cannot recover it afterwards.
+  </p>
+
+  {# Behind a disclosure so it can't be hit by accident. #}
+  <details class="reveal">
+    <summary>I want to delete my account</summary>
+    <div>
+      <form method="post" action="{{ url_for('auth.delete_account') }}" novalidate
+            onsubmit="return confirm('Permanently delete your account and all of your data? This cannot be undone.')">
+        {{ delete_form.csrf_token }}
+        <div class="field">
+          {{ delete_form.password.label }}
+          {{ delete_form.password(autocomplete="current-password") }}
+        </div>
+        <div class="field">
+          {{ delete_form.confirm_text.label }}
+          {{ delete_form.confirm_text(placeholder="DELETE") }}
+        </div>
+        <button class="btn btn-danger" type="submit">Delete everything permanently</button>
+      </form>
+    </div>
+  </details>
 </div>
 {% endblock %}

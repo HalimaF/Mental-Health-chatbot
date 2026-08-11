@@ -3,51 +3,82 @@
 
 {% block head %}
 <style>
-.turn{display:flex;margin-bottom:.6rem}
-.turn.user{justify-content:flex-end}
-.turn .bubble{
-  max-width:min(80%,640px);padding:.65rem .95rem;border-radius:14px;font-size:.93rem;
-  white-space:pre-wrap;overflow-wrap:anywhere;
-}
-.turn.user .bubble{background:var(--green);color:#fff;border-bottom-right-radius:5px}
-.turn.bot .bubble{background:var(--wash);border:1px solid var(--line);border-bottom-left-radius:5px}
-.stamp{font-size:.72rem;color:var(--muted);margin:.1rem .3rem .5rem}
-.risk-tag{display:inline-block;font-size:.7rem;padding:.08rem .45rem;border-radius:999px;
-  background:var(--danger-bg);color:var(--danger);border:1px solid var(--danger-line);margin-left:.35rem}
-.empty{text-align:center;padding:2.5rem 1rem;color:var(--muted)}
+.page-head{display:flex; gap:1rem; align-items:flex-end; flex-wrap:wrap; margin-bottom:1.4rem}
+.page-head h1{font-size:clamp(1.5rem,4vw,2rem); margin:0}
+.page-head p{color:var(--ink-2); font-size:.92rem; margin:.25rem 0 0}
+.page-head .btn{margin-left:auto}
+
+.day{display:flex; align-items:center; gap:.8rem; margin:1.6rem 0 .9rem; color:var(--ink-3); font-size:.78rem; font-weight:600; letter-spacing:.04em; text-transform:uppercase}
+.day::before,.day::after{content:''; flex:1; height:1px; background:var(--line)}
+.day:first-child{margin-top:0}
+
+.turn{display:flex; margin-bottom:.4rem}
+.turn.me{justify-content:flex-end}
+.turn .bubble{max-width:min(82%,580px); padding:.75rem 1.05rem; border-radius:var(--r-xl);
+  font-size:.96rem; line-height:1.6; white-space:pre-wrap; box-shadow:var(--sh-1)}
+.turn.me .bubble{background:linear-gradient(160deg,var(--brand-2),var(--brand)); color:var(--brand-ink); border-bottom-right-radius:var(--r-sm)}
+.turn.bot .bubble{background:var(--surface); border:1px solid var(--line); border-bottom-left-radius:var(--r-sm)}
+.meta{font-size:.72rem; color:var(--ink-3); padding:0 .6rem .7rem}
+.meta.me{text-align:right}
+.flag{display:inline-flex; align-items:center; gap:.25rem; color:var(--accent); font-weight:600}
+.flag svg{width:11px; height:11px}
+
+.empty{text-align:center; padding:3.5rem 1rem}
+.empty-ico{width:52px;height:52px;margin:0 auto 1rem;border-radius:var(--r-lg);display:grid;place-items:center;background:var(--brand-soft);color:var(--brand)}
+.empty-ico svg{width:24px;height:24px}
 </style>
 {% endblock %}
 
 {% block content %}
-<div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:1rem">
-  <h1 style="font-size:1.35rem;color:var(--green);margin:0">Your conversation history</h1>
-  <a class="btn btn-outline" style="margin-left:auto;font-size:.85rem;padding:.4rem .9rem"
-     href="{{ url_for('wellness.api_export') }}">Export everything</a>
+<div class="page-head">
+  <div>
+    <h1>Your history</h1>
+    <p>Everything you and Dil-e-Azaad have said, stored encrypted.</p>
+  </div>
+  <a class="btn btn-ghost btn-sm" href="{{ url_for('wellness.api_export') }}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+    Export
+  </a>
 </div>
 
-<div class="card">
-  {% if messages %}
+{% if messages %}
+  <div class="card">
+    {% set ns = namespace(day='') %}
     {% for m in messages %}
-      <div class="turn {{ 'user' if m.role == 'user' else 'bot' }}">
-        {# Auto-escaped. The previous template used |safe here and rendered stored
-           model output as live HTML, which made stored XSS a one-message exercise. #}
+      {% set d = m.created_at.strftime('%d %B %Y') if m.created_at else '' %}
+      {% if d != ns.day %}
+        {% set ns.day = d %}
+        <div class="day">{{ d }}</div>
+      {% endif %}
+      <div class="turn {{ 'me' if m.role == 'user' else 'bot' }}">
+        {# Auto-escaped. The old template used |safe here, which turned any
+           stored message into executable HTML. #}
         <div class="bubble">{{ m.content }}</div>
       </div>
-      <div class="stamp" style="text-align:{{ 'right' if m.role == 'user' else 'left' }}">
-        {{ m.created_at.strftime('%d %b %Y, %H:%M') if m.created_at else '' }}
-        {% if m.role == 'user' and m.risk_level >= 3 %}<span class="risk-tag">flagged for support</span>{% endif %}
+      <div class="meta {{ 'me' if m.role == 'user' else '' }}">
+        {{ m.created_at.strftime('%H:%M') if m.created_at else '' }}
+        {% if m.role == 'user' and m.risk_level >= 3 %}
+          · <span class="flag">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 8v5M12 16h.01"/><circle cx="12" cy="12" r="9"/></svg>
+              support offered
+            </span>
+        {% endif %}
       </div>
     {% endfor %}
-  {% else %}
-    <div class="empty">
-      <p>Nothing here yet.</p>
-      <a class="btn" href="{{ url_for('chat.chat_page') }}">Start a conversation</a>
+  </div>
+{% else %}
+  <div class="card empty">
+    <div class="empty-ico">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
     </div>
-  {% endif %}
-</div>
+    <h2 style="font-size:1.1rem">Nothing here yet</h2>
+    <p class="hint" style="margin-bottom:1.3rem">Your conversations will appear here once you start talking.</p>
+    <a class="btn" href="{{ url_for('chat.chat_page') }}">Start a conversation</a>
+  </div>
+{% endif %}
 
 <div class="disclaimer" style="margin-top:1rem">
-  These messages are stored encrypted. You can download them all, or delete your account
-  and everything in it, from your <a href="{{ url_for('auth.account') }}">account page</a>.
+  These messages are encrypted at rest. Download them all, or delete your account and
+  everything in it, from your <a href="{{ url_for('auth.account') }}">account page</a>.
 </div>
 {% endblock %}

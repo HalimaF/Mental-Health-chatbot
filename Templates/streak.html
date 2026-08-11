@@ -1,63 +1,98 @@
 {% extends "base.html" %}
-{% block title %}Check-in streak — Dil-e-Azaad{% endblock %}
+{% block title %}Daily check-in — Dil-e-Azaad{% endblock %}
 
 {% block head %}
 <style>
-.stats{display:grid;gap:.75rem;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));margin-bottom:1rem}
-.stat{background:var(--wash);border:1px solid var(--line);border-radius:var(--radius);padding:1rem;text-align:center}
-.stat .n{font-size:1.9rem;font-weight:600;color:var(--green);line-height:1.1}
-.stat .l{font-size:.8rem;color:var(--muted);margin-top:.2rem}
-.cal{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;margin-top:.75rem}
-.cell{aspect-ratio:1;border-radius:6px;background:var(--wash-2);border:1px solid var(--line);
-  display:flex;align-items:center;justify-content:center;font-size:.68rem;color:var(--muted)}
-.cell.on{background:var(--green);border-color:var(--green);color:#fff;font-weight:600}
-.moods{display:flex;gap:.4rem;flex-wrap:wrap;margin:.6rem 0 1rem}
-.mood{flex:1;min-width:64px;padding:.6rem .3rem;border:1px solid var(--line);border-radius:10px;
-  background:#fff;cursor:pointer;font:inherit;font-size:.78rem;color:var(--muted);text-align:center}
-.mood:hover{border-color:var(--green)}
-.mood.sel{background:var(--wash-2);border-color:var(--green);color:var(--green);font-weight:600}
-.mood .e{display:block;font-size:1.25rem;margin-bottom:.15rem}
-@media(max-width:560px){.cal{grid-template-columns:repeat(6,1fr)}}
+.page-head{max-width:52ch; margin-bottom:1.5rem}
+.page-head h1{font-size:clamp(1.5rem,4vw,2rem); margin-bottom:.3rem}
+.page-head p{color:var(--ink-2); font-size:.95rem}
+
+.stats{display:grid; gap:.8rem; grid-template-columns:repeat(3,1fr); margin-bottom:1.1rem}
+.stat{background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg);
+  padding:1.1rem .8rem; text-align:center; box-shadow:var(--sh-1)}
+.stat .n{font-size:clamp(1.6rem,6vw,2.2rem); font-weight:650; color:var(--brand); line-height:1; letter-spacing:-.03em}
+.stat .l{font-size:.76rem; color:var(--ink-3); margin-top:.4rem; line-height:1.3}
+.stat.hero{grid-column:1/-1; background:linear-gradient(150deg,var(--brand),var(--brand-2)); border-color:transparent}
+.stat.hero .n{color:#fff; font-size:clamp(2.4rem,10vw,3.4rem)}
+.stat.hero .l{color:rgba(255,255,255,.82); font-size:.85rem}
+
+/* Faces, not a 1-5 scale. A number asks people to rate themselves; a face just
+   asks how they feel. */
+.moods{display:grid; grid-template-columns:repeat(5,1fr); gap:.5rem; margin:.9rem 0 1.2rem}
+.mood{background:var(--surface); border:1px solid var(--line-2); border-radius:var(--r-md);
+  padding:.8rem .2rem; cursor:pointer; font:inherit; font-size:.72rem; color:var(--ink-3);
+  text-align:center; transition:transform .15s var(--ease), border-color .15s, background .15s, color .15s}
+.mood .e{display:block; font-size:1.6rem; line-height:1; margin-bottom:.4rem; filter:grayscale(.55); transition:filter .2s, transform .2s var(--ease)}
+.mood:hover{border-color:var(--brand-line); transform:translateY(-2px)}
+.mood:hover .e{filter:none}
+.mood[aria-pressed=true]{background:var(--brand-soft); border-color:var(--brand); color:var(--brand); font-weight:650}
+.mood[aria-pressed=true] .e{filter:none; transform:scale(1.12)}
+
+.cal{display:grid; grid-template-columns:repeat(10,1fr); gap:5px; margin-top:.9rem}
+.cell{aspect-ratio:1; border-radius:6px; background:var(--surface-2); border:1px solid var(--line);
+  display:grid; place-items:center; font-size:.66rem; color:var(--ink-3); transition:transform .15s var(--ease)}
+.cell.on{background:var(--brand); border-color:var(--brand); color:var(--brand-ink); font-weight:650}
+.cell.today{box-shadow:0 0 0 2px var(--brand-3)}
+.cell:hover{transform:scale(1.12)}
+.cal-key{display:flex; gap:1rem; margin-top:.8rem; font-size:.76rem; color:var(--ink-3); align-items:center}
+.cal-key i{width:11px; height:11px; border-radius:3px; display:inline-block; margin-right:.35rem; vertical-align:-1px}
+
+.done{display:flex; gap:.6rem; align-items:center; padding:.9rem 1.1rem; background:var(--brand-soft);
+  border:1px solid var(--brand-line); border-radius:var(--r-md); color:var(--brand); font-size:.93rem}
+.done svg{width:18px; height:18px; flex:none}
+
+@media(max-width:560px){
+  .cal{grid-template-columns:repeat(7,1fr)}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .moods{gap:.35rem}
+  .mood{font-size:.66rem; padding:.65rem .1rem}
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<h1 style="font-size:1.35rem;color:var(--green)">Daily check-in</h1>
-<p class="hint" style="margin-bottom:1.25rem">
-  A moment each day to notice how you're doing. The streak is just a nudge — missing a day isn't failure.
-</p>
+<div class="page-head">
+  <h1>Daily check-in</h1>
+  <p>A moment to notice how you actually are. The streak is only a nudge — missing a day isn't a failure.</p>
+</div>
 
-<div class="stats" id="stats">
-  <div class="stat"><div class="n" id="s-current">{{ streak.current_streak }}</div><div class="l">Current streak</div></div>
-  <div class="stat"><div class="n" id="s-longest">{{ streak.longest_streak }}</div><div class="l">Longest streak</div></div>
+<div class="stats">
+  <div class="stat hero"><div class="n" id="s-current">{{ streak.current_streak }}</div><div class="l">day streak</div></div>
+  <div class="stat"><div class="n" id="s-longest">{{ streak.longest_streak }}</div><div class="l">Longest run</div></div>
   <div class="stat"><div class="n" id="s-total">{{ streak.total_checkins }}</div><div class="l">Total check-ins</div></div>
 </div>
 
-<div class="card">
+<div class="card" id="formCard" {% if streak.checked_in_today %}hidden{% endif %}>
   <h2 style="font-size:1.05rem">How are you feeling today?</h2>
-  <div class="moods" id="moods">
-    <button class="mood" type="button" data-score="1"><span class="e">😞</span>Struggling</button>
-    <button class="mood" type="button" data-score="2"><span class="e">😕</span>Low</button>
-    <button class="mood" type="button" data-score="3"><span class="e">😐</span>Okay</button>
-    <button class="mood" type="button" data-score="4"><span class="e">🙂</span>Good</button>
-    <button class="mood" type="button" data-score="5"><span class="e">😄</span>Great</button>
+  <div class="moods" id="moods" role="group" aria-label="Today's mood">
+    <button class="mood" type="button" data-score="1" aria-pressed="false"><span class="e">😞</span>Struggling</button>
+    <button class="mood" type="button" data-score="2" aria-pressed="false"><span class="e">😕</span>Low</button>
+    <button class="mood" type="button" data-score="3" aria-pressed="false"><span class="e">😐</span>Okay</button>
+    <button class="mood" type="button" data-score="4" aria-pressed="false"><span class="e">🙂</span>Good</button>
+    <button class="mood" type="button" data-score="5" aria-pressed="false"><span class="e">😄</span>Great</button>
   </div>
   <div class="field">
-    <label for="note">Anything you want to note? (optional, private, encrypted)</label>
+    <label for="note">Anything you want to note? <span class="hint">Optional, private, encrypted.</span></label>
     <textarea id="note" rows="2" maxlength="1000" placeholder="A word or two about today…"></textarea>
   </div>
-  <button class="btn" id="checkin" type="button" {% if streak.checked_in_today %}disabled{% endif %}>
-    {% if streak.checked_in_today %}Already checked in today{% else %}Check in for today{% endif %}
-  </button>
-  <p id="msg" class="hint" style="margin:.7rem 0 0"></p>
+  <button class="btn" id="checkin" type="button">Check in for today</button>
+</div>
+
+<div class="done" id="doneCard" {% if not streak.checked_in_today %}hidden{% endif %}>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg>
+  <span id="doneMsg">You've checked in today. See you tomorrow.</span>
 </div>
 
 <div class="card">
   <h2 style="font-size:1.05rem">Last 30 days</h2>
   <div class="cal" id="cal">
     {% for d in calendar %}
-      <div class="cell {{ 'on' if d.checked_in else '' }}" title="{{ d.date }}">{{ d.day }}</div>
+      <div class="cell {{ 'on' if d.checked_in else '' }} {{ 'today' if d.date == today else '' }}" title="{{ d.date }}">{{ d.day }}</div>
     {% endfor %}
+  </div>
+  <div class="cal-key">
+    <span><i style="background:var(--brand)"></i>Checked in</span>
+    <span><i style="background:var(--surface-2);border:1px solid var(--line)"></i>Missed</span>
   </div>
 </div>
 {% endblock %}
@@ -65,16 +100,19 @@
 {% block scripts %}
 <script>
 (function () {
-  const btn = document.getElementById('checkin');
-  const msg = document.getElementById('msg');
-  const note = document.getElementById('note');
-  let score = null;
+  var btn = document.getElementById('checkin');
+  var note = document.getElementById('note');
+  var formCard = document.getElementById('formCard');
+  var doneCard = document.getElementById('doneCard');
+  var doneMsg = document.getElementById('doneMsg');
+  var today = {{ today | tojson }};
+  var score = null;
 
   document.getElementById('moods').addEventListener('click', function (e) {
-    const b = e.target.closest('.mood');
+    var b = e.target.closest('.mood');
     if (!b) return;
-    document.querySelectorAll('.mood').forEach(function (m) { m.classList.remove('sel'); });
-    b.classList.add('sel');
+    document.querySelectorAll('.mood').forEach(function (m) { m.setAttribute('aria-pressed', 'false'); });
+    b.setAttribute('aria-pressed', 'true');
     score = parseInt(b.getAttribute('data-score'), 10);
   });
 
@@ -85,11 +123,11 @@
       document.getElementById('s-total').textContent = streak.total_checkins;
     }
     if (calendar) {
-      const cal = document.getElementById('cal');
+      var cal = document.getElementById('cal');
       cal.replaceChildren();
       calendar.forEach(function (d) {
-        const cell = document.createElement('div');
-        cell.className = 'cell' + (d.checked_in ? ' on' : '');
+        var cell = document.createElement('div');
+        cell.className = 'cell' + (d.checked_in ? ' on' : '') + (d.date === today ? ' today' : '');
         cell.title = d.date;
         cell.textContent = d.day;
         cal.appendChild(cell);
@@ -99,22 +137,20 @@
 
   btn.addEventListener('click', async function () {
     btn.disabled = true;
-    msg.textContent = '';
-    const res = await App.postJSON('/api/checkin', {
+    var res = await App.postJSON('/api/checkin', {
       mood_score: score,
       note: note.value.trim() || null
     });
-    const d = res.data || {};
-    msg.textContent = d.message || (res.ok ? 'Checked in.' : 'Could not check in — please try again.');
-    if (res.ok) {
-      btn.textContent = 'Checked in for today';
+    var d = res.data || {};
+    if (res.ok || res.status === 409) {
+      formCard.hidden = true;
+      doneCard.hidden = false;
+      doneMsg.textContent = d.message || 'Checked in for today.';
       paint(d.streak, d.calendar);
-      note.value = '';
-    } else if (res.status === 409) {
-      btn.textContent = 'Already checked in today';
-      paint(d.streak, null);
     } else {
       btn.disabled = false;
+      doneCard.hidden = false;
+      doneMsg.textContent = d.message || 'Could not check in — please try again.';
     }
   });
 })();

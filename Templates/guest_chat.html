@@ -1,142 +1,199 @@
 {% extends "base.html" %}
 {% block title %}Anonymous chat — Dil-e-Azaad{% endblock %}
+{% block container_class %}chat-wrap{% endblock %}
+{% block footer %}{% endblock %}
 
 {% block head %}
 <style>
-.chat-shell{display:flex;flex-direction:column;height:calc(100vh - 210px);min-height:400px}
-#messages{flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:.7rem;
-  background:var(--wash);border:1px solid var(--line);border-radius:var(--radius)}
-.msg{display:flex}
-.msg.user{justify-content:flex-end}
-.msg.bot{justify-content:flex-start}
-.bubble{max-width:min(78%,620px);padding:.7rem 1rem;border-radius:16px;white-space:pre-wrap;
-  overflow-wrap:anywhere;font-size:.95rem}
-.msg.user .bubble{background:var(--green);color:#fff;border-bottom-right-radius:5px}
-.msg.bot .bubble{background:#fff;border:1px solid var(--line);border-bottom-left-radius:5px}
-.msg .crisis{max-width:min(78%,620px)}
-.composer{display:flex;gap:.5rem;align-items:flex-end;margin-top:.75rem}
-.composer textarea{resize:none;max-height:140px;min-height:46px;border-radius:20px}
-.typing{display:none;gap:4px;padding:.6rem 1rem;align-items:center}
-.typing.on{display:flex}
-.typing span{width:7px;height:7px;border-radius:50%;background:var(--green-300);animation:b 1.2s infinite}
-.typing span:nth-child(2){animation-delay:.2s}
-.typing span:nth-child(3){animation-delay:.4s}
-@keyframes b{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
+main{padding:0; display:flex; min-height:0}
+.chat-wrap{display:flex; flex-direction:column; height:calc(100dvh - var(--header-h)); padding:0!important; max-width:820px}
+
+/* Pill radius only while it fits on one line. Once the text wraps on a narrow
+   screen a 999px radius turns the whole strip into a lozenge blob. */
+.ghost-bar{
+  display:flex; gap:.6rem; align-items:center; margin:.85rem clamp(1rem,4vw,1.5rem) 0;
+  padding:.6rem 1rem; background:var(--surface-2); border:1px solid var(--line);
+  border-radius:var(--r-full); font-size:.83rem; color:var(--ink-2); line-height:1.45;
+}
+@media (max-width:720px){
+  .ghost-bar{border-radius:var(--r-md); align-items:flex-start; flex-wrap:wrap; gap:.3rem .6rem}
+  .ghost-bar svg{margin-top:.25rem}
+  /* Icon and text share the first row; only the link drops below it. */
+  .ghost-bar span{flex:1; min-width:0}
+  .ghost-bar a{flex:1 1 100%; margin-left:1.6rem}
+}
+.ghost-bar svg{width:15px; height:15px; color:var(--brand); flex:none}
+.ghost-bar a{font-weight:600; white-space:nowrap}
+
+#thread{flex:1; overflow-y:auto; overscroll-behavior:contain; padding:1.2rem clamp(1rem,4vw,1.5rem) .5rem;
+  display:flex; flex-direction:column; gap:.2rem; scroll-behavior:smooth}
+/* Keep a space between the brace and the id selector below -- an open brace
+   immediately followed by a hash is how Jinja opens a comment, and it will
+   swallow the rest of the file. */
+@media (prefers-reduced-motion: reduce){ #thread{scroll-behavior:auto} }
+
+.turn{display:flex; margin-top:.55rem; animation:rise .35s var(--ease) both}
+.turn.me{justify-content:flex-end}
+.turn.tight{margin-top:.15rem}
+.bubble{max-width:min(84%,600px); padding:.8rem 1.1rem; font-size:1rem; line-height:1.65;
+  white-space:pre-wrap; border-radius:var(--r-xl); box-shadow:var(--sh-1)}
+.turn.me .bubble{background:linear-gradient(160deg,var(--brand-2),var(--brand)); color:var(--brand-ink);
+  border-bottom-right-radius:var(--r-sm)}
+.turn.bot .bubble{background:var(--surface); color:var(--ink); border:1px solid var(--line);
+  border-bottom-left-radius:var(--r-sm)}
+.turn.bot .crisis,.turn.bot .notice{max-width:min(84%,600px)}
+
+.thinking{display:none; align-items:center; gap:5px; padding:.85rem 1.2rem; margin-top:.55rem;
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--r-xl);
+  border-bottom-left-radius:var(--r-sm); width:fit-content; box-shadow:var(--sh-1)}
+.thinking.on{display:flex; animation:rise .3s var(--ease) both}
+.thinking i{width:7px; height:7px; border-radius:50%; background:var(--ink-3); animation:pulse 1.4s ease-in-out infinite}
+.thinking i:nth-child(2){animation-delay:.18s}
+.thinking i:nth-child(3){animation-delay:.36s}
+@keyframes pulse{0%,60%,100%{opacity:.28; transform:translateY(0)}30%{opacity:.95; transform:translateY(-3px)}}
+
+.composer-shell{position:sticky; bottom:0; padding:.5rem clamp(1rem,4vw,1.5rem) max(1rem,env(safe-area-inset-bottom));
+  background:linear-gradient(to top,var(--bg) 62%,transparent)}
+.composer{display:flex; align-items:flex-end; gap:.5rem; background:var(--surface);
+  border:1px solid var(--line-2); border-radius:var(--r-xl); padding:.4rem .4rem .4rem 1rem;
+  box-shadow:var(--sh-2); transition:border-color .18s var(--ease), box-shadow .18s}
+.composer:focus-within{border-color:var(--brand); box-shadow:var(--sh-2),0 0 0 3px color-mix(in srgb,var(--brand) 15%,transparent)}
+.composer textarea{flex:1; border:0; background:transparent; box-shadow:none!important; resize:none;
+  padding:.6rem 0; min-height:26px; max-height:150px; line-height:1.55; font-size:1rem;
+  color:var(--ink); outline:none!important}
+.send{width:42px; height:42px; flex:none; border-radius:50%; border:0; cursor:pointer;
+  background:var(--brand); color:var(--brand-ink); display:grid; place-items:center;
+  transition:transform .14s var(--ease), background .15s, opacity .15s}
+.send:hover:not(:disabled){background:var(--brand-2); transform:scale(1.05)}
+.send:disabled{opacity:.35; cursor:not-allowed}
+.send svg{width:18px; height:18px}
+.legal{display:flex; justify-content:center; gap:.9rem; align-items:center; font-size:.76rem;
+  color:var(--ink-3); margin:.55rem 0 0; flex-wrap:wrap}
+.legal button{background:none; border:0; color:var(--ink-3); text-decoration:underline;
+  font:inherit; font-size:.76rem; cursor:pointer; padding:0}
+.legal a{color:var(--ink-3); text-decoration:underline}
+@media (max-width:560px){.bubble{max-width:88%; font-size:.98rem}}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="disclaimer" style="margin-bottom:.75rem">
-  <strong>Anonymous mode.</strong> Nothing you type here is written to our database. The
-  conversation lives in your browser session only and disappears when you close it — which
-  also means I can't remember it next time.
-  <a href="{{ url_for('auth.register') }}">Create an account</a> if you'd like continuity.
+<div class="ghost-bar">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M17.9 17.9A10.1 10.1 0 0 1 12 20C5 20 1 12 1 12a18.5 18.5 0 0 1 5.1-5.9m4-1.9A10.1 10.1 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.2 3.2M1 1l22 22"/>
+  </svg>
+  <span><strong>Nothing here is saved.</strong> This conversation lives only in your browser and disappears when you close it.</span>
+  <a href="{{ url_for('auth.register') }}">Want it remembered?</a>
 </div>
 
-<div class="chat-shell">
-  <div id="messages" role="log" aria-live="polite" aria-label="Conversation"></div>
-  <div class="typing" id="typing" aria-hidden="true"><span></span><span></span><span></span></div>
+<div id="thread" role="log" aria-live="polite" aria-label="Conversation" tabindex="0"></div>
+
+<div class="thinking" id="thinking" aria-hidden="true"><i></i><i></i><i></i></div>
+
+<div class="composer-shell">
   <form class="composer" id="composer">
     <label class="sr-only" for="input">Your message</label>
-    <textarea id="input" rows="1" placeholder="Say whatever you need to…" maxlength="4000"></textarea>
-    <button class="btn" id="send" type="submit">Send</button>
+    <textarea id="input" rows="1" placeholder="Say whatever you need to…" maxlength="4000" autocomplete="off"></textarea>
+    <button class="send" id="send" type="submit" aria-label="Send message" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+    </button>
   </form>
-  <div style="display:flex;gap:.5rem;align-items:center;margin-top:.6rem;flex-wrap:wrap">
-    <button class="btn btn-outline" id="clear" type="button" style="font-size:.85rem;padding:.4rem .8rem">Clear conversation</button>
-    <span class="hint">AI companion — not a therapist. In danger? Call 15 or 1122.</span>
-  </div>
+  <p class="legal">
+    <span>AI companion — not a therapist.</span>
+    <a href="{{ url_for('main.resources') }}">Get real help</a>
+    <button type="button" id="clear">Clear conversation</button>
+  </p>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
 (function () {
-  const box = document.getElementById('messages');
-  const form = document.getElementById('composer');
-  const input = document.getElementById('input');
-  const send = document.getElementById('send');
-  const typing = document.getElementById('typing');
-  let busy = false;
+  var thread = document.getElementById('thread');
+  var form = document.getElementById('composer');
+  var input = document.getElementById('input');
+  var send = document.getElementById('send');
+  var thinking = document.getElementById('thinking');
+  var busy = false, lastRole = null;
 
-  function scroll() { box.scrollTop = box.scrollHeight; }
+  function atBottom(){ return thread.scrollHeight - thread.scrollTop - thread.clientHeight < 120; }
+  function toBottom(f){ if(f||atBottom()) requestAnimationFrame(function(){ thread.scrollTop = thread.scrollHeight; }); }
 
   function addMessage(text, isUser) {
-    const row = document.createElement('div');
-    row.className = 'msg ' + (isUser ? 'user' : 'bot');
-    const bubble = document.createElement('div');
-    bubble.className = 'bubble';
-    bubble.textContent = text;   // never innerHTML
-    row.appendChild(bubble);
-    box.appendChild(row);
-    scroll();
+    var pin = atBottom();
+    var row = document.createElement('div');
+    row.className = 'turn ' + (isUser ? 'me' : 'bot') + (lastRole === isUser ? ' tight' : '');
+    var b = document.createElement('div');
+    b.className = 'bubble';
+    b.textContent = text;          // never innerHTML
+    row.appendChild(b);
+    thread.appendChild(row);
+    lastRole = isUser;
+    toBottom(pin || isUser);
   }
-
-  function addResources(resources, isCrisis) {
-    if (!resources || !resources.length) return;
-    const row = document.createElement('div');
-    row.className = 'msg bot';
-    row.appendChild(App.crisisPanel(
-      resources,
-      isCrisis ? 'Please reach out to someone now' : 'If you want to talk to a person'
-    ));
-    box.appendChild(row);
-    scroll();
+  function addBlock(node) {
+    var pin = atBottom();
+    var row = document.createElement('div');
+    row.className = 'turn bot';
+    row.appendChild(node);
+    thread.appendChild(row);
+    lastRole = null;
+    toBottom(pin);
   }
-
-  function addNotice(text) {
-    const row = document.createElement('div');
-    row.className = 'msg bot';
-    const n = document.createElement('div');
-    n.className = 'notice';
-    n.textContent = text;
-    row.appendChild(n);
-    box.appendChild(row);
-    scroll();
-  }
+  function addNotice(t){ var n=document.createElement('div'); n.className='notice'; n.textContent=t; addBlock(n); }
 
   function setBusy(on) {
-    busy = on; send.disabled = on; input.disabled = on;
-    typing.classList.toggle('on', on);
-    if (!on) input.focus();
+    busy = on;
+    send.disabled = on || !input.value.trim();
+    input.readOnly = on;
+    thinking.classList.toggle('on', on);
+    thinking.setAttribute('aria-hidden', String(!on));
+    if (on) toBottom(true); else input.focus();
   }
 
   async function sendMessage() {
     if (busy) return;
-    const message = input.value.trim();
+    var message = input.value.trim();
     if (!message) return;
     addMessage(message, true);
-    input.value = ''; input.style.height = 'auto';
+    input.value = ''; autosize();
     setBusy(true);
-    const res = await App.postJSON('/api/guest/chat', { message: message });
+    var res = await App.postJSON('/api/guest/chat', { message: message });
     setBusy(false);
     if (!res.ok) {
       addNotice((res.data && res.data.message) || 'Something went wrong. Please try again.');
       if (res.status >= 500) {
-        const r = await App.getJSON('/api/resources');
-        if (r.ok && r.data) addResources(r.data.resources, false);
+        var r = await App.getJSON('/api/resources');
+        if (r.ok && r.data) addBlock(App.crisisPanel(r.data.resources, 'If you need someone now'));
       }
       return;
     }
     addMessage(res.data.response, false);
-    addResources(res.data.resources, res.data.risk && res.data.risk.is_crisis);
+    if (res.data.resources && res.data.resources.length) {
+      addBlock(App.crisisPanel(
+        res.data.resources,
+        res.data.risk && res.data.risk.is_crisis ? 'Please reach out to someone now' : 'If you’d rather talk to a person'
+      ));
+    }
   }
 
-  form.addEventListener('submit', function (e) { e.preventDefault(); sendMessage(); });
-  input.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-  });
-  input.addEventListener('input', function () {
-    input.style.height = 'auto';
-    input.style.height = Math.min(input.scrollHeight, 140) + 'px';
-  });
+  function autosize(){ input.style.height='auto'; input.style.height=Math.min(input.scrollHeight,150)+'px'; }
+
+  input.addEventListener('input', function(){ autosize(); send.disabled = busy || !input.value.trim(); });
+  input.addEventListener('keydown', function(e){ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendMessage(); }});
+  form.addEventListener('submit', function(e){ e.preventDefault(); sendMessage(); });
   document.getElementById('clear').addEventListener('click', async function () {
     await App.postJSON('/api/guest/reset', {});
-    box.replaceChildren();
+    thread.replaceChildren();
+    lastRole = null;
+    greet();
     input.focus();
   });
 
-  addMessage("Hi. I'm Dil-e-Azaad. Nothing here is saved, so say whatever you need to. What's going on?", false);
-  input.focus();
+  function greet() {
+    addMessage("Hi. I'm Dil-e-Azaad. Nothing you say here gets saved, so there's no need to hold anything back. What's going on?", false);
+  }
+  greet();
+  if (window.matchMedia('(min-width:720px)').matches) input.focus();
 })();
 </script>
 {% endblock %}

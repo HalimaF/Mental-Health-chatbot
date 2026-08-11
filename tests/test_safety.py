@@ -132,11 +132,31 @@ def test_informational_questions_do_not_trigger_crisis(text):
     assert not a.is_crisis
 
 
-def test_third_party_concern_is_stepped_down_and_flagged():
-    a = safety.assess_with_rules("My brother said he wants to die, how do I help him?")
-    assert a.third_party is True
-    assert a.level == RiskLevel.MODERATE
-    assert not a.is_crisis
+@pytest.mark.parametrize(
+    "text",
+    [
+        "My brother said he wants to die, how do I help him?",
+        # Caught in live testing: peer and household relations were missing
+        # from the relation list, so this read as the user's own disclosure.
+        "my roommate said she wants to die and I don't know how to help her",
+        "my flatmate has been talking about killing herself",
+        "my best friend wants to die and I'm scared",
+        "my classmate said he wants to die",
+        "how do I help my sister who wants to die",
+        "I'm worried about my cousin, she wants to die",
+    ],
+)
+def test_third_party_concern_is_stepped_down_and_flagged(text):
+    a = safety.assess_with_rules(text)
+    assert a.third_party is True, text
+    assert a.level == RiskLevel.MODERATE, text
+    assert not a.is_crisis, text
+
+
+def test_first_person_disclosure_is_not_mistaken_for_third_party():
+    """The widened relation list must not swallow the user's own risk."""
+    a = safety.assess_with_rules("I want to die and my brother doesn't know")
+    assert a.level >= RiskLevel.MODERATE
 
 
 # --- Layer 2 fusion --------------------------------------------------------

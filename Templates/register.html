@@ -1,60 +1,103 @@
 {% extends "base.html" %}
-{% block title %}Sign up — Dil-e-Azaad{% endblock %}
+{% block title %}Create your account — Dil-e-Azaad{% endblock %}
+{% block container_class %}wrap-narrow{% endblock %}
+
+{% block head %}
+<style>
+.auth{padding:clamp(1rem,5vw,2.5rem) 0; animation:rise .45s var(--ease) both}
+.auth-head{text-align:center; margin-bottom:1.6rem}
+.auth-head h1{font-size:1.75rem; margin-bottom:.35rem}
+.auth-head p{color:var(--ink-2); font-size:.95rem}
+.alt{text-align:center; margin-top:1.3rem; font-size:.9rem; color:var(--ink-2)}
+.consent{display:flex; gap:.65rem; align-items:flex-start; padding:.85rem;
+  background:var(--surface-2); border:1px solid var(--line); border-radius:var(--r-md)}
+.consent input{width:auto; min-height:0; margin:.2rem 0 0; accent-color:var(--brand); flex:none}
+.consent span{font-size:.87rem; color:var(--ink-2); line-height:1.55}
+.meter{display:flex; gap:4px; margin-top:.5rem}
+.meter i{height:3px; flex:1; border-radius:2px; background:var(--line-2); transition:background .25s var(--ease)}
+.meter.s1 i:nth-child(1){background:var(--danger)}
+.meter.s2 i:nth-child(-n+2){background:var(--accent)}
+.meter.s3 i:nth-child(-n+3){background:var(--brand-3)}
+.meter.s4 i{background:var(--brand)}
+.meter-txt{font-size:.78rem; color:var(--ink-3); margin-top:.3rem}
+</style>
+{% endblock %}
 
 {% block content %}
-<div style="max-width:460px;margin:1.5rem auto">
-  <div class="card">
-    <h1 style="font-size:1.35rem;color:var(--green)">Create your account</h1>
-    <p class="hint" style="margin-bottom:1.25rem">
-      An account lets the conversation continue across sessions and lets you track how you're doing over time.
-    </p>
+<div class="auth">
+  <div class="auth-head">
+    <h1>Create your account</h1>
+    <p>So the conversation carries on, and you can see how you're doing over time.</p>
+  </div>
 
+  <div class="card">
     <form method="post" novalidate>
       {{ form.csrf_token }}
       <div class="field">
         {{ form.username.label }}
-        {{ form.username(autocomplete="username", autofocus=true) }}
+        {{ form.username(autocomplete="username", autofocus=true, placeholder="Pick a username") }}
         {% for error in form.username.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
       </div>
       <div class="field">
         {{ form.email.label }}
-        {{ form.email(autocomplete="email", type="email") }}
+        {{ form.email(autocomplete="email", type="email", placeholder="you@example.com") }}
         {% for error in form.email.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
       </div>
       <div class="field">
         {{ form.password.label }}
-        {{ form.password(autocomplete="new-password") }}
-        <div class="hint" style="margin-top:.3rem">
-          At least 12 characters, using three of: lowercase, uppercase, a number, a symbol.
-        </div>
+        {{ form.password(autocomplete="new-password", placeholder="At least 12 characters", id="pw") }}
+        <div class="meter" id="meter" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <div class="meter-txt" id="meterTxt">Use 12+ characters with a mix of cases, numbers or symbols.</div>
         {% for error in form.password.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
       </div>
       <div class="field">
         {{ form.confirm.label }}
-        {{ form.confirm(autocomplete="new-password") }}
+        {{ form.confirm(autocomplete="new-password", placeholder="Type it again") }}
         {% for error in form.confirm.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
       </div>
       <div class="field">
-        <label style="display:flex;gap:.5rem;align-items:flex-start;font-weight:400;color:var(--ink)">
-          {{ form.accept(style="width:auto;margin-top:.25rem") }}
-          <span style="font-size:.87rem">
-            I understand Dil-e-Azaad is an AI companion and not a substitute for professional
-            care or an emergency service.
-          </span>
+        <label class="consent">
+          {{ form.accept() }}
+          <span>I understand Dil-e-Azaad is an AI companion — not a substitute for professional care or an emergency service.</span>
         </label>
         {% for error in form.accept.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
       </div>
       <button class="btn btn-block" type="submit">Create account</button>
     </form>
-
-    <p class="hint" style="margin-top:1rem;text-align:center">
-      Already registered? <a href="{{ url_for('auth.login') }}">Log in</a>
-    </p>
   </div>
 
   <div class="disclaimer" style="margin-top:1rem">
-    Your messages are encrypted before storage. You can export or permanently delete
-    everything at any time from your account page.
+    Your messages are encrypted before they're stored. You can download everything or
+    delete it permanently at any time, from your account page.
   </div>
+
+  <p class="alt">Already registered? <a href="{{ url_for('auth.login') }}">Log in</a></p>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Mirrors the server-side rule in app/forms.py: length plus three of four
+// character classes. Purely advisory -- the server is what actually decides.
+(function () {
+  var pw = document.getElementById('pw');
+  var meter = document.getElementById('meter');
+  var txt = document.getElementById('meterTxt');
+  if (!pw) return;
+  pw.addEventListener('input', function () {
+    var v = pw.value;
+    var classes = [/[a-z]/, /[A-Z]/, /\d/, /[^A-Za-z0-9]/].filter(function (r) { return r.test(v); }).length;
+    var score = 0;
+    if (v.length >= 8) score = 1;
+    if (v.length >= 12 && classes >= 2) score = 2;
+    if (v.length >= 12 && classes >= 3) score = 3;
+    if (v.length >= 16 && classes >= 3) score = 4;
+    meter.className = 'meter' + (v ? ' s' + score : '');
+    txt.textContent = !v ? 'Use 12+ characters with a mix of cases, numbers or symbols.'
+      : v.length < 12 ? 'Too short — 12 characters minimum.'
+      : classes < 3 ? 'Add another kind of character: a capital, number or symbol.'
+      : score === 4 ? 'Strong password.' : 'Good — this meets the requirements.';
+  });
+})();
+</script>
 {% endblock %}
