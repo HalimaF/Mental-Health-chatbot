@@ -29,6 +29,13 @@
       "description": "Helplines you can call right now",
       "url": "/resources",
       "icons": [{ "src": "/static/icons/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "My safety plan",
+      "short_name": "Safety plan",
+      "description": "Your own plan for a hard moment",
+      "url": "/safety-plan",
+      "icons": [{ "src": "/static/icons/icon-192x192.png", "sizes": "192x192" }]
     }
   ]
 }

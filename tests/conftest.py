@@ -4,6 +4,7 @@ import pytest
 
 from app import create_app
 from app.extensions import db as _db
+from app.extensions import limiter as _limiter
 from app.models import User
 
 
@@ -46,6 +47,19 @@ class FakeHF:
 @pytest.fixture
 def app():
     application = create_app("testing")
+
+    # `limiter` is a module-level singleton shared by every app built in this
+    # process. A couple of tests construct a *development* app to exercise CSRF,
+    # and that init_app call switches the limiter on globally with in-memory
+    # storage. It then keeps counting by IP for the rest of the session, so
+    # later /api/chat and /api/export calls start returning 429 and tests fail
+    # in ways that look like product bugs. Force it off and clear the counters.
+    _limiter.enabled = False
+    try:
+        _limiter.reset()
+    except Exception:
+        pass
+
     with application.app_context():
         _db.create_all()
         yield application

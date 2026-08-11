@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% block title %}My safety plan — Dil-e-Azaad{% endblock %}
+
+{% block head %}
+<style>
+.page-head{max-width:56ch; margin-bottom:1.5rem}
+.page-head h1{font-size:clamp(1.5rem,4vw,2rem); margin-bottom:.4rem}
+.page-head p{color:var(--ink-2); font-size:.95rem}
+
+.progress{display:flex; gap:.7rem; align-items:center; margin:1rem 0 1.5rem;
+  padding:.85rem 1.1rem; background:var(--brand-soft); border:1px solid var(--brand-line);
+  border-radius:var(--r-md)}
+.progress svg{width:18px; height:18px; color:var(--brand); flex:none}
+.progress-txt{flex:1; font-size:.89rem; color:var(--brand)}
+.progress-bar{height:5px; background:var(--surface); border-radius:3px; overflow:hidden; margin-top:.4rem}
+.progress-bar i{display:block; height:100%; background:var(--brand); border-radius:3px;
+  transition:width .45s var(--ease)}
+
+.step{margin-bottom:1rem}
+.step-head{display:flex; gap:.75rem; align-items:flex-start; margin-bottom:.6rem}
+.step-n{width:26px; height:26px; flex:none; border-radius:50%; background:var(--brand-soft);
+  color:var(--brand); border:1px solid var(--brand-line); display:grid; place-items:center;
+  font-size:.78rem; font-weight:700; margin-top:.1rem}
+.step-t{flex:1}
+.step-t h2{font-size:1rem; margin:0 0 .15rem}
+.step-t p{margin:0; font-size:.86rem; color:var(--ink-3); line-height:1.5}
+.step textarea{min-height:88px; resize:vertical; line-height:1.6}
+.step.filled .step-n{background:var(--brand); color:var(--brand-ink); border-color:var(--brand)}
+
+.saving{position:sticky; bottom:1rem; display:flex; justify-content:center; pointer-events:none;
+  margin-top:1.5rem; z-index:20}
+.saving span{background:var(--ink); color:var(--bg); font-size:.8rem; font-weight:500;
+  padding:.45rem .95rem; border-radius:var(--r-full); box-shadow:var(--sh-2);
+  opacity:0; transition:opacity .25s var(--ease)}
+.saving.on span{opacity:1}
+
+.tools{display:flex; gap:.6rem; flex-wrap:wrap; margin-top:1.5rem; align-items:center}
+.tools .hint{margin-left:auto}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>My safety plan</h1>
+  <p>
+    Written now, while you can think clearly — so that a future you, on a much harder day,
+    doesn't have to. Nothing here is required, and nobody else ever sees it. It saves as you type.
+  </p>
+</div>
+
+<div class="progress">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+  </svg>
+  <div class="progress-txt">
+    <span id="progressTxt">{{ plan.filled_count }} of 7 steps filled in</span>
+    <div class="progress-bar"><i id="progressBar" style="width:{{ (plan.filled_count / 7 * 100) | round }}%"></i></div>
+  </div>
+</div>
+
+<form id="planForm" autocomplete="off">
+  <div class="card step" data-field="warning_signs">
+    <div class="step-head">
+      <div class="step-n">1</div>
+      <div class="step-t">
+        <h2>My warning signs</h2>
+        <p>The thoughts, feelings or situations that tell me a hard time is starting.</p>
+      </div>
+    </div>
+    <textarea name="warning_signs" maxlength="2000" placeholder="e.g. I stop replying to messages. I can't sleep and I start replaying old arguments.">{{ plan.warning_signs or '' }}</textarea>
+  </div>
+
+  <div class="card step" data-field="coping_strategies">
+    <div class="step-head">
+      <div class="step-n">2</div>
+      <div class="step-t">
+        <h2>What I can do on my own</h2>
+        <p>Things that have helped before, without needing anyone else.</p>
+      </div>
+    </div>
+    <textarea name="coping_strategies" maxlength="2000" placeholder="e.g. Cold water on my face. Walk to the end of the road and back. Put on the playlist from last winter.">{{ plan.coping_strategies or '' }}</textarea>
+  </div>
+
+  <div class="card step" data-field="distractions">
+    <div class="step-head">
+      <div class="step-n">3</div>
+      <div class="step-t">
+        <h2>People and places that take my mind off it</h2>
+        <p>Not to talk about the problem — just to be somewhere else for a while.</p>
+      </div>
+    </div>
+    <textarea name="distractions" maxlength="2000" placeholder="e.g. Sit with my cousin while she studies. The tea place near campus.">{{ plan.distractions or '' }}</textarea>
+  </div>
+
+  <div class="card step" data-field="support_people">
+    <div class="step-head">
+      <div class="step-n">4</div>
+      <div class="step-t">
+        <h2>People I can ask for help</h2>
+        <p>Names and numbers, so I don't have to think of them in the moment.</p>
+      </div>
+    </div>
+    <textarea name="support_people" maxlength="2000" placeholder="e.g. Ayesha — 03xx xxxxxxx. My khala — she always picks up.">{{ plan.support_people or '' }}</textarea>
+  </div>
+
+  <div class="card step" data-field="professionals">
+    <div class="step-head">
+      <div class="step-n">5</div>
+      <div class="step-t">
+        <h2>Professionals and services</h2>
+        <p>A counsellor, a doctor, a helpline. Add numbers now so they're ready.</p>
+      </div>
+    </div>
+    <textarea name="professionals" maxlength="2000" placeholder="e.g. Umang 0311-7786264. Dr. Khan's clinic — Tuesdays.">{{ plan.professionals or '' }}</textarea>
+  </div>
+
+  <div class="card step" data-field="environment">
+    <div class="step-head">
+      <div class="step-n">6</div>
+      <div class="step-t">
+        <h2>Making things around me safer</h2>
+        <p>What I can put out of reach, and who can help me do it.</p>
+      </div>
+    </div>
+    <textarea name="environment" maxlength="2000" placeholder="e.g. Ask my brother to keep my tablets for a while. Don't stay alone on the roof at night.">{{ plan.environment or '' }}</textarea>
+  </div>
+
+  <div class="card step" data-field="reasons_for_living">
+    <div class="step-head">
+      <div class="step-n">7</div>
+      <div class="step-t">
+        <h2>Reasons to stay</h2>
+        <p>The things worth holding on for. This is the one people re-read most.</p>
+      </div>
+    </div>
+    <textarea name="reasons_for_living" maxlength="2000" placeholder="e.g. My sister's wedding next year. Finishing my degree. The cat.">{{ plan.reasons_for_living or '' }}</textarea>
+  </div>
+</form>
+
+<div class="saving" id="saving" aria-live="polite"><span id="savingTxt">Saved</span></div>
+
+<div class="tools">
+  <a class="btn btn-ghost btn-sm" href="{{ url_for('main.resources') }}">Crisis helplines</a>
+  <button class="btn btn-ghost btn-sm" type="button" id="printBtn">Print or save as PDF</button>
+  <span class="hint">Encrypted, private, deleted with your account.</span>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  var form = document.getElementById('planForm');
+  var saving = document.getElementById('saving');
+  var savingTxt = document.getElementById('savingTxt');
+  var progressTxt = document.getElementById('progressTxt');
+  var progressBar = document.getElementById('progressBar');
+  var timers = {};
+  var TOTAL = 7;
+
+  function flash(text, hold) {
+    savingTxt.textContent = text;
+    saving.classList.add('on');
+    clearTimeout(flash._t);
+    flash._t = setTimeout(function () { saving.classList.remove('on'); }, hold || 1600);
+  }
+
+  function refreshProgress() {
+    var filled = 0;
+    form.querySelectorAll('textarea').forEach(function (t) {
+      var has = !!t.value.trim();
+      if (has) filled++;
+      t.closest('.step').classList.toggle('filled', has);
+    });
+    progressTxt.textContent = filled + ' of ' + TOTAL + ' steps filled in';
+    progressBar.style.width = (filled / TOTAL * 100) + '%';
+  }
+
+  // Autosave per field. A safety plan half-written and lost is worse than one
+  // never started, so nothing here depends on remembering to press save.
+  async function save(field, value) {
+    var body = {};
+    body[field] = value;
+    flash('Saving…', 4000);
+    var res = await App.postJSON('/api/safety-plan', body);
+    if (res.ok) {
+      flash('Saved');
+    } else if (res.status === 401) {
+      flash('Session ended — log in again to save', 8000);
+    } else {
+      flash('Could not save — your text is still here', 6000);
+    }
+  }
+
+  form.addEventListener('input', function (e) {
+    var t = e.target;
+    if (t.tagName !== 'TEXTAREA') return;
+    refreshProgress();
+    clearTimeout(timers[t.name]);
+    timers[t.name] = setTimeout(function () { save(t.name, t.value); }, 900);
+  });
+
+  // Don't lose the last keystrokes if the tab is closed mid-edit.
+  form.addEventListener('focusout', function (e) {
+    var t = e.target;
+    if (t.tagName !== 'TEXTAREA') return;
+    clearTimeout(timers[t.name]);
+    save(t.name, t.value);
+  });
+
+  document.getElementById('printBtn').addEventListener('click', function () { window.print(); });
+
+  refreshProgress();
+})();
+</script>
+{% endblock %}

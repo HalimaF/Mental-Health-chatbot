@@ -66,7 +66,23 @@ main{padding:0; display:flex; min-height:0}
 .turn:hover + .stamp,.stamp:hover{opacity:1}
 .stamp.me{text-align:right}
 
-.turn.bot .crisis,.turn.bot .notice{max-width:min(84%,600px)}
+.turn.bot .crisis,.turn.bot .notice,.turn.bot .plan-card{max-width:min(84%,600px)}
+
+/* The user's own plan. Brand green, not crisis terracotta — this is their
+   own steady voice, and it should not read as another alarm. */
+.plan-card{background:var(--brand-soft); border:1px solid var(--brand-line);
+  border-left:3px solid var(--brand); border-radius:var(--r-md); padding:1rem 1.1rem;
+  box-shadow:var(--sh-1)}
+.plan-head{display:flex; gap:.5rem; align-items:center; margin-bottom:.75rem}
+.plan-head svg{width:18px; height:18px; color:var(--brand); flex:none}
+.plan-head h3{margin:0; font-size:.95rem; font-weight:600; color:var(--brand); font-family:var(--font)}
+.plan-sec{margin-bottom:.8rem}
+.plan-lbl{font-size:.74rem; font-weight:650; letter-spacing:.05em; text-transform:uppercase;
+  color:var(--ink-3); margin-bottom:.2rem}
+.plan-sec p{margin:0; font-size:.94rem; color:var(--ink); white-space:pre-wrap; line-height:1.6}
+.plan-link{display:inline-flex; align-items:center; gap:.3rem; font-size:.87rem;
+  font-weight:600; color:var(--brand)}
+.plan-offer p{margin:0 0 .7rem; font-size:.94rem; color:var(--ink-2); line-height:1.6}
 
 /* Three dots that breathe. Reads as thinking, not loading. */
 .thinking{display:none; align-items:center; gap:5px; padding:.85rem 1.2rem; margin-top:.55rem;
@@ -209,6 +225,61 @@ main{padding:0; display:flex; min-height:0}
     addBlock(n);
   }
 
+  var PLAN_LABELS = {
+    coping_strategies: 'What helps when you’re on your own',
+    support_people: 'People you said you could ask',
+    reasons_for_living: 'Your reasons to stay'
+  };
+
+  // Rendered with textContent throughout — this is the user's own writing
+  // coming back out of the database, and it is still untrusted to the DOM.
+  function buildPlanCard(plan) {
+    var box = document.createElement('div');
+    box.className = 'plan-card';
+
+    var head = document.createElement('div');
+    head.className = 'plan-head';
+    head.appendChild(App.svg('M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'));
+    var h = document.createElement('h3');
+    h.textContent = 'From your own safety plan';
+    head.appendChild(h);
+    box.appendChild(head);
+
+    Object.keys(PLAN_LABELS).forEach(function (key) {
+      if (!plan[key]) return;
+      var sec = document.createElement('div');
+      sec.className = 'plan-sec';
+      var lbl = document.createElement('div');
+      lbl.className = 'plan-lbl';
+      lbl.textContent = PLAN_LABELS[key];
+      var body = document.createElement('p');
+      body.textContent = plan[key];
+      sec.append(lbl, body);
+      box.appendChild(sec);
+    });
+
+    var link = document.createElement('a');
+    link.className = 'plan-link';
+    link.href = '/safety-plan';
+    link.textContent = 'Open the full plan';
+    box.appendChild(link);
+    return box;
+  }
+
+  function buildPlanOffer() {
+    var box = document.createElement('div');
+    box.className = 'plan-card plan-offer';
+    var p = document.createElement('p');
+    p.textContent = 'When things are calmer, it can help to write down what works for you — '
+      + 'who to call, what helps, what keeps you here. Then it’s ready on a day like today.';
+    var link = document.createElement('a');
+    link.className = 'plan-link';
+    link.href = '/safety-plan';
+    link.textContent = 'Make a safety plan';
+    box.append(p, link);
+    return box;
+  }
+
   function stamp(iso) {
     var d = iso ? new Date(iso) : new Date();
     var today = new Date();
@@ -268,6 +339,15 @@ main{padding:0; display:flex; min-height:0}
 
     var data = res.data;
     addMessage(data.response, false, stamp());
+
+    // The person's own plan comes before the generic helpline list — their
+    // words, written calmly, land where general advice slides off.
+    if (data.safety_plan && Object.keys(data.safety_plan).length) {
+      addBlock(buildPlanCard(data.safety_plan));
+    } else if (data.offer_safety_plan) {
+      addBlock(buildPlanOffer());
+    }
+
     if (data.resources && data.resources.length) {
       addBlock(App.crisisPanel(
         data.resources,

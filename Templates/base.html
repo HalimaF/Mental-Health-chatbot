@@ -342,6 +342,7 @@ footer .wrap{padding-top:1.5rem; padding-bottom:1.5rem}
         <a class="hide-sm" href="{{ url_for('wellness.streak_page') }}" {% if request.endpoint=='wellness.streak_page' %}aria-current="page"{% endif %}>Check-in</a>
         <a class="hide-sm" href="{{ url_for('wellness.insights_page') }}" {% if request.endpoint=='wellness.insights_page' %}aria-current="page"{% endif %}>Insights</a>
         <a class="hide-sm" href="{{ url_for('chat.history_page') }}" {% if request.endpoint=='chat.history_page' %}aria-current="page"{% endif %}>History</a>
+        <a class="hide-sm" href="{{ url_for('safety_plan.page') }}" {% if request.endpoint=='safety_plan.page' %}aria-current="page"{% endif %}>Safety plan</a>
         <a href="{{ url_for('auth.account') }}" {% if request.endpoint=='auth.account' %}aria-current="page"{% endif %}>Account</a>
       {% else %}
         <a href="{{ url_for('chat.guest_page') }}">Talk now</a>

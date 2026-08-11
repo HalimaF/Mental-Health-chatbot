@@ -9,7 +9,7 @@ from __future__ import annotations
 import pytest
 
 PUBLIC = ["/", "/guest", "/login", "/register", "/resources", "/healthz"]
-PRIVATE = ["/chat", "/history", "/streak", "/insights", "/account"]
+PRIVATE = ["/chat", "/history", "/streak", "/insights", "/account", "/safety-plan"]
 
 
 @pytest.mark.parametrize("path", PUBLIC)

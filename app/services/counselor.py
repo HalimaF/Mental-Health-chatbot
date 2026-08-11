@@ -52,6 +52,10 @@ class Reply:
     resources: list[dict] = field(default_factory=list)
     fallback_used: bool = False
     conversation_id: int | None = None
+    # The user's own safety plan, surfaced at high risk. Empty otherwise.
+    safety_plan: dict | None = None
+    # True when risk is high and no plan exists yet, so the UI can offer one.
+    offer_safety_plan: bool = False
 
     def to_dict(self) -> dict:
         return {
@@ -60,6 +64,8 @@ class Reply:
             "resources": self.resources,
             "degraded": self.fallback_used or self.assessment.degraded,
             "conversation_id": self.conversation_id,
+            "safety_plan": self.safety_plan,
+            "offer_safety_plan": self.offer_safety_plan,
         }
 
 
@@ -137,6 +143,12 @@ def respond(
         fallback_used=fallback_used,
     )
 
+    # At high risk, put the person's own safety plan in front of them. In a
+    # crisis, recall narrows and generic advice slides off; their own words,
+    # written calmly, land differently. Guests have no stored plan.
+    if user is not None and assessment.level >= RiskLevel.HIGH:
+        _attach_safety_plan(reply, user)
+
     if user is not None and conversation is not None:
         _persist(conversation, user, user_input, reply, assessment)
         reply.conversation_id = conversation.id
@@ -152,6 +164,28 @@ def respond(
             db.session.rollback()
 
     return reply
+
+
+def _attach_safety_plan(reply: Reply, user) -> None:
+    """Surface the user's plan, or invite them to make one.
+
+    The invitation is deliberately withheld at IMMINENT risk: asking someone
+    with a plan and means to go and fill in a form is the wrong instruction at
+    that moment. Contacting a human is the only thing that should compete for
+    their attention.
+    """
+    from ..models import SafetyPlan  # local import keeps services import-light
+
+    try:
+        plan = db.session.query(SafetyPlan).filter(SafetyPlan.user_id == user.id).first()
+    except Exception:
+        logger.exception("Could not load safety plan for user %s", user.id)
+        return
+
+    if plan is not None and not plan.is_empty:
+        reply.safety_plan = plan.crisis_extract()
+    elif reply.assessment.level < RiskLevel.IMMINENT:
+        reply.offer_safety_plan = True
 
 
 def _persist(

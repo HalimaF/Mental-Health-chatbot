@@ -84,6 +84,9 @@ class User(db.Model):
     checkins: Mapped[list[CheckIn]] = relationship(
         cascade="all, delete-orphan", passive_deletes=True
     )
+    safety_plan: Mapped[SafetyPlan | None] = relationship(
+        cascade="all, delete-orphan", passive_deletes=True, uselist=False
+    )
 
     def set_password(self, password: str) -> None:
         self.password_hash = generate_password_hash(password)
@@ -185,6 +188,81 @@ class CheckIn(db.Model):
     __table_args__ = (
         UniqueConstraint("user_id", "checkin_date", name="uq_checkin_user_date"),
     )
+
+
+class SafetyPlan(db.Model):
+    """A Stanley-Brown safety plan, in the user's own words.
+
+    Written while calm, read while not. In a crisis, attention narrows and
+    recall degrades — the plan is external memory for exactly that moment, which
+    is why the app surfaces it rather than waiting to be asked. Every field is
+    optional: a partial plan is far better than an empty one, so nothing here
+    blocks on completeness.
+    """
+
+    __tablename__ = "safety_plans"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False, index=True
+    )
+
+    # Step 1 — how I know a hard time is starting.
+    warning_signs: Mapped[str | None] = mapped_column(EncryptedText)
+    # Step 2 — what helps when I'm on my own.
+    coping_strategies: Mapped[str | None] = mapped_column(EncryptedText)
+    # Step 3 — people and places that take my mind off it.
+    distractions: Mapped[str | None] = mapped_column(EncryptedText)
+    # Step 4 — people I can actually ask for help.
+    support_people: Mapped[str | None] = mapped_column(EncryptedText)
+    # Step 5 — professionals and services.
+    professionals: Mapped[str | None] = mapped_column(EncryptedText)
+    # Step 6 — making my surroundings safer.
+    environment: Mapped[str | None] = mapped_column(EncryptedText)
+    # Not a Stanley-Brown step, but consistently the one people re-read.
+    reasons_for_living: Mapped[str | None] = mapped_column(EncryptedText)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, onupdate=utcnow
+    )
+
+    FIELDS = (
+        "warning_signs",
+        "coping_strategies",
+        "distractions",
+        "support_people",
+        "professionals",
+        "environment",
+        "reasons_for_living",
+    )
+
+    @property
+    def is_empty(self) -> bool:
+        return not any((getattr(self, f) or "").strip() for f in self.FIELDS)
+
+    @property
+    def filled_count(self) -> int:
+        return sum(1 for f in self.FIELDS if (getattr(self, f) or "").strip())
+
+    def to_dict(self) -> dict:
+        data = {f: getattr(self, f) or "" for f in self.FIELDS}
+        data["filled_count"] = self.filled_count
+        data["total_steps"] = len(self.FIELDS)
+        data["updated_at"] = self.updated_at.isoformat() if self.updated_at else None
+        return data
+
+    def crisis_extract(self) -> dict:
+        """The subset worth putting in front of someone mid-crisis.
+
+        Not the whole plan: at high risk a long document competes with "call
+        someone now". These are the steps that act as an immediate anchor.
+        """
+        return {
+            key: (getattr(self, key) or "").strip()
+            for key in ("coping_strategies", "support_people", "reasons_for_living")
+            if (getattr(self, key) or "").strip()
+        }
 
 
 class AuditEvent(db.Model):
@@ -291,6 +369,7 @@ __all__ = [
     "Message",
     "MoodEntry",
     "CheckIn",
+    "SafetyPlan",
     "AuditEvent",
     "RiskLevel",
     "compute_streaks",

@@ -15,6 +15,7 @@ from ..models import (
     Message,
     MoodEntry,
     RiskLevel,
+    SafetyPlan,
     checkin_calendar,
     compute_streaks,
 )
@@ -259,6 +260,11 @@ def api_export():
             .order_by(MoodEntry.created_at.asc())
             .all()
         ],
+        "safety_plan": (
+            db.session.query(SafetyPlan).filter(SafetyPlan.user_id == user.id).first().to_dict()
+            if db.session.query(SafetyPlan).filter(SafetyPlan.user_id == user.id).first()
+            else None
+        ),
         "checkins": [
             {
                 "date": c.checkin_date.isoformat(),

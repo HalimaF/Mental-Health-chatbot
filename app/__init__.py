@@ -115,12 +115,13 @@ def create_app(config_name: str | None = None) -> Flask:
 
     app.extensions["huggingface"] = _build_hf_service(app)
 
-    from .blueprints import auth, chat, main, wellness
+    from .blueprints import auth, chat, main, safety_plan, wellness
 
     app.register_blueprint(main.bp)
     app.register_blueprint(auth.bp)
     app.register_blueprint(chat.bp)
     app.register_blueprint(wellness.bp)
+    app.register_blueprint(safety_plan.bp)
 
     # JSON endpoints are protected by the SameSite=Lax cookie plus an explicit
     # CSRF header from the client; exempting them from form-token validation
