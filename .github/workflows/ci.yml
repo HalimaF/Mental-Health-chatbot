@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Test
+        run: pytest --cov=app --cov-report=term-missing
+
+      - name: Verify the app boots
+        run: python -c "from app import create_app; create_app('testing'); print('boot ok')"
+
+  secrets-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # A live API key was previously committed in source. This fails the build
+      # if a provider key ever reappears in the tree.
+      - name: Scan for hard-coded API keys
+        run: |
+          if git grep -nIE 'AIzaSy[0-9A-Za-z_-]{20,}|hf_[0-9A-Za-z]{30,}|sk-[0-9A-Za-z]{30,}' -- . ':!*.lock'; then
+            echo "::error::A hard-coded API key was found. Remove it and rotate the key."
+            exit 1
+          fi
+          echo "No hard-coded keys found."
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t dil-e-azaad:ci .

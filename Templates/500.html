@@ -1,71 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Server Error - Dil-e-Azaad</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            margin: 0;
-            padding: 20px;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .error-container {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            text-align: center;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            max-width: 500px;
-            width: 100%;
-        }
-        .error-code {
-            font-size: 6rem;
-            color: #e74c3c;
-            margin: 0;
-            font-weight: bold;
-        }
-        .error-title {
-            font-size: 2rem;
-            color: #333;
-            margin: 20px 0;
-        }
-        .error-description {
-            color: #666;
-            margin: 20px 0;
-            line-height: 1.6;
-        }
-        .back-button {
-            background: linear-gradient(45deg, #e74c3c, #c0392b);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 25px;
-            text-decoration: none;
-            font-size: 1.1rem;
-            transition: all 0.3s ease;
-            display: inline-block;
-            margin-top: 20px;
-        }
-        .back-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-    </style>
-</head>
-<body>
-    <div class="error-container">
-        <h1 class="error-code">500</h1>
-        <h2 class="error-title">Server Error</h2>
-        <p class="error-description">
-            Something went wrong on our end. We're working to fix this issue. Please try again in a moment.
-        </p>
-        <a href="/" class="back-button">Return Home</a>
-    </div>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Something went wrong — Dil-e-Azaad{% endblock %}
+
+{% block content %}
+<div class="card" style="text-align:center;padding:2.5rem 1.25rem;max-width:560px;margin:2rem auto">
+  <h1 style="font-size:1.4rem;color:var(--green)">Something broke on our end</h1>
+  <p class="hint" style="margin-bottom:1.25rem">
+    That's our fault, not yours. Please try again in a moment.
+  </p>
+  <div class="crisis" style="text-align:left">
+    <h3>If you need someone right now, don't wait for us</h3>
+    <ul>
+      <li><strong>Emergency (Pakistan):</strong> 15 or 1122</li>
+      <li><strong>Umang Mental Health Helpline:</strong> 0311-7786264</li>
+      <li><strong>Crisis Text Line:</strong> Text HOME to 741741</li>
+    </ul>
+  </div>
+  <a class="btn" style="margin-top:1rem" href="{{ url_for('main.welcome') }}">Go home</a>
+</div>
+{% endblock %}

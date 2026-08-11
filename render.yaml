@@ -1,0 +1,60 @@
+# Render blueprint. `render deploy` or connect the repo and pick "Blueprint".
+services:
+  - type: web
+    name: dil-e-azaad
+    runtime: python
+    plan: starter          # free tier sleeps and has no persistent disk
+    region: singapore      # closest Render region to Pakistan
+    buildCommand: pip install -r requirements.txt
+    # Migrations run in the start command rather than a pre-deploy hook, so this
+    # works on every Render plan. Alembic is idempotent, so repeated starts are safe.
+    startCommand: flask --app wsgi db upgrade && gunicorn wsgi:app --workers 2 --threads 4 --timeout 60 --access-logfile - --error-logfile -
+    healthCheckPath: /healthz
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: SESSION_COOKIE_SECURE
+        value: "1"
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+
+      # Generated once by Render and then held stable.
+      - key: SECRET_KEY
+        generateValue: true
+
+      # MUST be set manually to a Fernet key, and backed up somewhere durable:
+      #   python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+      # Losing or rotating this key makes every stored conversation unreadable.
+      - key: ENCRYPTION_KEY
+        sync: false
+
+      # Set in the Render dashboard. Never commit it.
+      - key: HF_TOKEN
+        sync: false
+
+      - key: HF_CHAT_MODEL
+        value: meta-llama/Llama-3.3-70B-Instruct
+
+      # Managed Postgres. SQLite would be wiped on every single deploy.
+      - key: DATABASE_URL
+        fromDatabase:
+          name: dil-e-azaad-db
+          property: connectionString
+
+      # Shared rate-limit counters across both gunicorn workers.
+      - key: RATELIMIT_STORAGE_URI
+        fromService:
+          type: redis
+          name: dil-e-azaad-redis
+          property: connectionString
+
+databases:
+  - name: dil-e-azaad-db
+    plan: basic-256mb
+    region: singapore
+
+  - type: redis
+    name: dil-e-azaad-redis
+    plan: free
+    region: singapore
+    ipAllowList: []

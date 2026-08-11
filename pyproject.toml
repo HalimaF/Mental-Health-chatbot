@@ -1,0 +1,19 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = [
+    "ignore::DeprecationWarning:pytz.*",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+# Alembic writes these; they are not hand-maintained source.
+extend-exclude = ["migrations/versions", "migrations/env.py"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B011"]

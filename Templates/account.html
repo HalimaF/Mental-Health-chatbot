@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Account — Dil-e-Azaad{% endblock %}
+
+{% block content %}
+<h1 style="font-size:1.35rem;color:var(--green)">Your account</h1>
+
+<div class="card">
+  <h2 style="font-size:1.05rem">Details</h2>
+  <p class="hint" style="margin:0">
+    <strong>Username:</strong> {{ user.username }}<br>
+    <strong>Email:</strong> {{ user.email }}<br>
+    <strong>Member since:</strong> {{ user.created_at.strftime('%d %B %Y') if user.created_at else '—' }}
+  </p>
+</div>
+
+<div class="card">
+  <h2 style="font-size:1.05rem">Your data</h2>
+  <p class="hint">
+    Every message you and Dil-e-Azaad exchange is encrypted before it is stored. You can
+    download all of it, or delete it permanently — we keep no copy after deletion.
+  </p>
+  <a class="btn btn-outline" href="{{ url_for('wellness.api_export') }}">Download my data (JSON)</a>
+</div>
+
+<div class="card">
+  <h2 style="font-size:1.05rem">Change password</h2>
+  <form method="post" action="{{ url_for('auth.change_password') }}" novalidate>
+    {{ password_form.csrf_token }}
+    <div class="field">
+      {{ password_form.current_password.label }}
+      {{ password_form.current_password(autocomplete="current-password") }}
+    </div>
+    <div class="field">
+      {{ password_form.password.label }}
+      {{ password_form.password(autocomplete="new-password") }}
+      <div class="hint" style="margin-top:.3rem">At least 12 characters, using three of: lowercase, uppercase, a number, a symbol.</div>
+    </div>
+    <div class="field">
+      {{ password_form.confirm.label }}
+      {{ password_form.confirm(autocomplete="new-password") }}
+    </div>
+    <button class="btn" type="submit">Update password</button>
+    <p class="hint" style="margin:.6rem 0 0">Changing your password signs you out everywhere.</p>
+  </form>
+</div>
+
+<div class="card" style="border-color:var(--danger-line)">
+  <h2 style="font-size:1.05rem;color:var(--danger)">Delete account</h2>
+  <p class="hint">
+    This permanently removes your account, every conversation, all mood data and all
+    check-ins. It cannot be undone and we cannot recover it afterwards.
+  </p>
+  <form method="post" action="{{ url_for('auth.delete_account') }}" novalidate
+        onsubmit="return confirm('Permanently delete your account and all of your data? This cannot be undone.')">
+    {{ delete_form.csrf_token }}
+    <div class="field">
+      {{ delete_form.password.label }}
+      {{ delete_form.password(autocomplete="current-password") }}
+    </div>
+    <div class="field">
+      {{ delete_form.confirm_text.label }}
+      {{ delete_form.confirm_text(placeholder="DELETE") }}
+    </div>
+    <button class="btn btn-danger" type="submit">Delete everything permanently</button>
+  </form>
+</div>
+{% endblock %}

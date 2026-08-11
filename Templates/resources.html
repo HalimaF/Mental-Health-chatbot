@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Crisis resources — Dil-e-Azaad{% endblock %}
+
+{% block content %}
+<h1 style="font-size:1.45rem;color:var(--green)">Getting help from a person</h1>
+<p class="hint" style="margin-bottom:1.25rem">
+  Dil-e-Azaad is an AI and cannot intervene in an emergency. These can.
+</p>
+
+<div class="crisis">
+  <h3>Immediate danger</h3>
+  <ul>
+    <li><strong>Emergency services (Pakistan):</strong> 15 or 1122</li>
+    <li><strong>Edhi Foundation ambulance:</strong> 115</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h2 style="font-size:1.05rem;color:var(--green)">Helplines and support</h2>
+  <ul style="padding-left:1.1rem;margin:.5rem 0 0">
+    {% for r in resources %}
+      <li style="margin-bottom:.45rem">
+        <strong>{{ r.name }}:</strong>
+        {% if r.contact.startswith('http') %}
+          <a href="{{ r.contact }}" target="_blank" rel="noopener noreferrer">{{ r.contact }}</a>
+        {% else %}
+          {{ r.contact }}
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+</div>
+
+<div class="card">
+  <h2 style="font-size:1.05rem;color:var(--green)">If you're supporting someone else</h2>
+  <p style="font-size:.92rem;margin:0">
+    Ask directly and calmly whether they are thinking about suicide — research is clear that
+    asking does not plant the idea, and it often brings relief. Listen without rushing to fix
+    it. Help them make contact with a professional rather than making the call for them where
+    you can. Remove access to means if it is safe to do so. And take care of yourself too:
+    carrying this alone is heavy.
+  </p>
+</div>
+
+<div class="disclaimer" style="margin-top:1rem">
+  Helpline numbers change. If one does not connect, please try another or call emergency
+  services directly.
+</div>
+{% endblock %}

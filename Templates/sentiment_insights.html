@@ -1,763 +1,369 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mental Health Analytics 🇵🇰</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
-    <style>
-        body {
-            margin: 0;
-            min-height: 100vh;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: linear-gradient(135deg, #e6ffe6 0%, #ffffff 100%);
-            position: relative;
-            overflow-x: hidden;
-        }
-        
-        /* Animated moving icons background */
-        .moving-icons {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            pointer-events: none; z-index: -1; overflow: hidden;
-        }
-        
-        .moving-icon {
-            position: absolute; font-size: 24px; opacity: 0.1;
-            animation: float 15s infinite linear;
-        }
-        
-        @keyframes float {
-            0% { transform: translateY(100vh) rotate(0deg); }
-            100% { transform: translateY(-100px) rotate(360deg); }
-        }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .navbar {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 15px 0;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
-        }
-        
-        .navbar a {
-            color: #006600;
-            text-decoration: none;
-            margin: 0 15px;
-            padding: 8px 16px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-        
-        .navbar a:hover, .navbar a.active {
-            background-color: #10B981;
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-        
-        .page-header {
-            color: #006600;
-            text-align: center;
-            margin-bottom: 40px;
-            font-size: 2.5rem;
-            font-weight: 700;
-            background: linear-gradient(45deg, #006600, #10B981);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .analytics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 30px;
-            margin-bottom: 40px;
-        }
-        
-        .chart-card {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 8px 25px rgba(0, 102, 0, 0.1);
-            border-left: 5px solid #10B981;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        .chart-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 35px rgba(0, 102, 0, 0.15);
-        }
-        
-        .chart-card h3 {
-            color: #006600;
-            margin-bottom: 20px;
-            font-size: 1.4rem;
-            font-weight: 600;
-        }
-        
-        .stats-overview {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-        
-        .stat-card {
-            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-            color: white;
-            padding: 25px;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
-            transition: transform 0.3s ease;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-3px);
-        }
-        
-        .stat-value {
-            font-size: 2.5rem;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
-        .stat-label {
-            font-size: 0.9rem;
-            opacity: 0.9;
-        }
-        
-        .mood-timeline {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 8px 25px rgba(0, 102, 0, 0.1);
-        }
-        
-        .mood-item {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 10px;
-            background: #f8fffe;
-            border-left: 4px solid;
-        }
-        
-        .mood-positive { border-left-color: #10B981; }
-        .mood-neutral { border-left-color: #F59E0B; }
-        .mood-negative { border-left-color: #EF4444; }
-        .mood-severe-negative { border-left-color: #DC2626; }
-        
-        .mood-emoji {
-            font-size: 2rem;
-            margin-right: 15px;
-        }
-        
-        .mood-details h4 {
-            margin: 0 0 5px 0;
-            color: #006600;
-        }
-        
-        .mood-details p {
-            margin: 0;
-            color: #666;
-            font-size: 0.9rem;
-        }
-        
-        .mood-timestamp {
-            margin-left: auto;
-            color: #888;
-            font-size: 0.8rem;
-        }
-        
-        .insights-panel {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 8px 25px rgba(0, 102, 0, 0.1);
-        }
-        
-        .insight-item {
-            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            border-left: 4px solid #10B981;
-        }
-        
-        .insight-item h4 {
-            color: #006600;
-            margin: 0 0 10px 0;
-        }
-        
-        .no-data {
-            text-align: center;
-            padding: 60px 20px;
-            color: #666;
-        }
-        
-        .no-data h3 {
-            color: #006600;
-            margin-bottom: 15px;
-        }
-        
-        .chart-container {
-            position: relative;
-            height: 300px;
-            margin-bottom: 20px;
-        }
-        
-        .emoji-scale {
-            display: flex;
-            justify-content: space-between;
-            margin: 20px 0;
-            font-size: 2rem;
-        }
-        
-        .scale-item {
-            text-align: center;
-            flex: 1;
-        }
-        
-        .scale-label {
-            font-size: 0.8rem;
-            color: #666;
-            margin-top: 5px;
-        }
-    </style>
-</head>
-<body>
-    <div class="moving-icons" id="movingIcons"></div>
-    
-    <div class="container">
-        <nav class="navbar">
-            <a href="/welcome">🏠 Home</a>
-            <a href="/chat">💬 Chat</a>
-            <a href="/sentiment_insights" class="active">📊 Analytics</a>
-            <a href="/streak">🔥 Streak</a>
-            <a href="/logout">🚪 Logout</a>
-        </nav>
-        
-        <h1 class="page-header">Mental Health Analytics Dashboard</h1>
-        
-        {% if sentiment_data and sentiment_data|length > 0 %}
-            <!-- Stats Overview -->
-            <div class="stats-overview">
-                <div class="stat-card">
-                    <div class="stat-value" id="totalSessions">0</div>
-                    <div class="stat-label">Total Sessions</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="avgMood">0.0</div>
-                    <div class="stat-label">Average Mood Score</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="improvementTrend">📈</div>
-                    <div class="stat-label">Trend</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="streakDays">0</div>
-                    <div class="stat-label">Day Streak</div>
-                </div>
-            </div>
-            
-            <!-- Charts Grid -->
-            <div class="analytics-grid">
-                <!-- Mood Trend Chart -->
-                <div class="chart-card">
-                    <h3>📈 Mood Trend Over Time</h3>
-                    <div class="chart-container">
-                        <canvas id="moodTrendChart"></canvas>
-                    </div>
-                </div>
-                
-                <!-- Sentiment Distribution -->
-                <div class="chart-card">
-                    <h3>🎯 Sentiment Distribution</h3>
-                    <div class="chart-container">
-                        <canvas id="sentimentPieChart"></canvas>
-                    </div>
-                </div>
-                
-                <!-- Weekly Mood Pattern -->
-                <div class="chart-card">
-                    <h3>📅 Weekly Mood Pattern</h3>
-                    <div class="chart-container">
-                        <canvas id="weeklyMoodChart"></canvas>
-                    </div>
-                </div>
-                
-                <!-- Confidence Levels -->
-                <div class="chart-card">
-                    <h3>🎯 Confidence Levels</h3>
-                    <div class="chart-container">
-                        <canvas id="confidenceChart"></canvas>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Mood Scale Reference -->
-            <div class="insights-panel">
-                <h3>😊 Mood Scale Reference</h3>
-                <div class="emoji-scale">
-                    <div class="scale-item">
-                        <div>😢</div>
-                        <div class="scale-label">Severe Negative</div>
-                    </div>
-                    <div class="scale-item">
-                        <div>😔</div>
-                        <div class="scale-label">Negative</div>
-                    </div>
-                    <div class="scale-item">
-                        <div>😐</div>
-                        <div class="scale-label">Neutral</div>
-                    </div>
-                    <div class="scale-item">
-                        <div>😊</div>
-                        <div class="scale-label">Positive</div>
-                    </div>
-                    <div class="scale-item">
-                        <div>🌟</div>
-                        <div class="scale-label">Very Positive</div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Recent Mood Timeline -->
-            <div class="mood-timeline">
-                <h3>🕐 Recent Mood Timeline</h3>
-                <div id="moodTimelineContainer">
-                    <!-- Timeline items will be populated by JavaScript -->
-                </div>
-            </div>
-            
-            <!-- Personalized Insights -->
-            <div class="insights-panel">
-                <h3>💡 Personalized Insights</h3>
-                <div id="personalizedInsights">
-                    <!-- Insights will be generated by JavaScript -->
-                </div>
-            </div>
-            
-        {% else %}
-            <div class="no-data">
-                <h3>🌱 Start Your Mental Health Journey</h3>
-                <p>Begin chatting with our AI counselor to see your mood analytics and insights here.</p>
-                <p>Your privacy is protected - all data is encrypted and secure.</p>
-                <br>
-                <a href="/chat" style="background: #10B981; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500;">Start Chat</a>
-            </div>
-        {% endif %}
+{% extends "base.html" %}
+{% block title %}Insights — Dil-e-Azaad{% endblock %}
+{% block container_class %}container-wide{% endblock %}
+
+{% block head %}
+<style>
+/* Chart tokens. Light-only by design — the whole app commits to one look.
+   Diverging pair (blue↔red, neutral gray midpoint) validated against this
+   surface: worst-pair CVD ΔE 21.6, normal-vision ΔE 32.3, both poles ≥3:1. */
+.viz{
+  --surface-1:#ffffff;
+  --text-primary:#0b0b0b; --text-secondary:#52514e; --muted-ink:#898781;
+  --grid:#e1e0d9; --axis:#c3c2b7;
+  --pos:#2a78d6;      /* diverging pole — positive */
+  --neu:#898781;      /* neutral midpoint */
+  --neg:#e34948;      /* diverging pole — negative */
+  --seq:#2a78d6;      /* sequential hue for magnitude bars */
+}
+.toolbar{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin-bottom:1rem}
+.toolbar .spacer{margin-left:auto}
+.range{display:flex;gap:.25rem;background:var(--wash-2);border:1px solid var(--line);border-radius:999px;padding:3px}
+.range button{
+  border:0;background:transparent;font:inherit;font-size:.83rem;color:var(--muted);
+  padding:.32rem .8rem;border-radius:999px;cursor:pointer;
+}
+.range button[aria-pressed=true]{background:var(--green);color:#fff;font-weight:500}
+
+.tiles{display:grid;gap:.75rem;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:1rem}
+.tile{background:var(--surface-1);border:1px solid var(--line);border-radius:var(--radius);padding:1rem}
+.tile .v{font-size:1.85rem;font-weight:600;color:var(--text-primary);line-height:1.1}
+.tile .k{font-size:.8rem;color:var(--text-secondary);margin-top:.2rem}
+
+figure{margin:0}
+figcaption{font-size:.95rem;font-weight:600;color:var(--text-primary);margin-bottom:.15rem}
+.sub{font-size:.82rem;color:var(--text-secondary);margin-bottom:.8rem}
+
+.legend{display:flex;gap:.9rem;flex-wrap:wrap;font-size:.8rem;color:var(--text-secondary);margin-top:.6rem}
+.legend span{display:inline-flex;align-items:center;gap:.35rem}
+.swatch{width:11px;height:11px;border-radius:3px;display:inline-block}
+
+/* Stacked sentiment bar: 2px surface gaps between segments, direct labels. */
+.mix{display:flex;height:34px;border-radius:6px;overflow:hidden;gap:2px;background:var(--surface-1)}
+.mix .seg{display:flex;align-items:center;justify-content:center;font-size:.76rem;
+  color:#fff;font-weight:600;min-width:0;overflow:hidden;white-space:nowrap}
+.mix .seg:first-child{border-radius:6px 0 0 6px}
+.mix .seg:last-child{border-radius:0 6px 6px 0}
+
+.chart-wrap{position:relative;overflow-x:auto}
+svg{display:block;max-width:100%;height:auto}
+.tip{
+  position:absolute;pointer-events:none;background:var(--text-primary);color:#fff;
+  font-size:.76rem;padding:.35rem .55rem;border-radius:6px;white-space:nowrap;
+  transform:translate(-50%,-115%);opacity:0;transition:opacity .1s;z-index:5;
+}
+.tip.on{opacity:1}
+
+.bars{display:flex;flex-direction:column;gap:6px}
+.bar-row{display:grid;grid-template-columns:104px 1fr 42px;align-items:center;gap:.6rem;font-size:.83rem}
+.bar-row .name{color:var(--text-secondary);text-transform:capitalize;overflow:hidden;text-overflow:ellipsis}
+.bar-track{background:var(--wash-2);border-radius:4px;height:15px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;background:var(--seq)}
+.bar-row .val{text-align:right;color:var(--text-secondary);font-variant-numeric:tabular-nums}
+
+.obs{margin:0;padding-left:1.1rem}
+.obs li{margin-bottom:.4rem;font-size:.92rem}
+.empty{text-align:center;padding:2.5rem 1rem;color:var(--text-secondary)}
+
+table{width:100%;border-collapse:collapse;font-size:.83rem;margin-top:.6rem}
+th,td{text-align:left;padding:.35rem .5rem;border-bottom:1px solid var(--grid);font-variant-numeric:tabular-nums}
+th{color:var(--text-secondary);font-weight:500}
+details summary{cursor:pointer;font-size:.83rem;color:var(--text-secondary);margin-top:.7rem}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="viz">
+  <div class="toolbar">
+    <h1 style="font-size:1.35rem;color:var(--green);margin:0">Your insights</h1>
+    <div class="spacer"></div>
+    <div class="range" role="group" aria-label="Time range">
+      <button type="button" data-days="7">7 days</button>
+      <button type="button" data-days="30" aria-pressed="true">30 days</button>
+      <button type="button" data-days="90">90 days</button>
+    </div>
+  </div>
+
+  <div id="body" hidden>
+    <div class="tiles">
+      <div class="tile"><div class="v" id="t-messages">—</div><div class="k">Messages in range</div></div>
+      <div class="tile"><div class="v" id="t-streak">—</div><div class="k">Current check-in streak</div></div>
+      <div class="tile"><div class="v" id="t-total">—</div><div class="k">Total check-ins</div></div>
+      <div class="tile"><div class="v" id="t-flagged">—</div><div class="k">Higher-distress messages</div></div>
     </div>
 
-    <script>
-        // Initialize moving background icons
-        function createMovingIcons() {
-            const iconContainer = document.getElementById('movingIcons');
-            const icons = ['🌱', '💚', '🕊️', '✨', '🌸', '🦋', '🌿', '💎', '🌺', '🍃'];
-            
-            for (let i = 0; i < 20; i++) {
-                const icon = document.createElement('div');
-                icon.className = 'moving-icon';
-                icon.textContent = icons[Math.floor(Math.random() * icons.length)];
-                icon.style.left = Math.random() * 100 + 'vw';
-                icon.style.animationDelay = Math.random() * 15 + 's';
-                icon.style.animationDuration = (15 + Math.random() * 10) + 's';
-                iconContainer.appendChild(icon);
-            }
-        }
-        
-        {% if sentiment_data and sentiment_data|length > 0 %}
-        // Process sentiment data
-        const sentimentData = {{ sentiment_data | tojson }};
-        
-        // Helper functions
-        function getMoodScore(sentiment) {
-            const scores = {
-                'severe_negative': 1,
-                'negative': 2,
-                'neutral': 3,
-                'positive': 4,
-                'very_positive': 5
-            };
-            return scores[sentiment] || 3;
-        }
-        
-        function getMoodEmoji(sentiment) {
-            const emojis = {
-                'severe_negative': '😢',
-                'negative': '😔',
-                'neutral': '😐',
-                'positive': '😊',
-                'very_positive': '🌟'
-            };
-            return emojis[sentiment] || '😐';
-        }
-        
-        function getMoodColor(sentiment) {
-            const colors = {
-                'severe_negative': '#DC2626',
-                'negative': '#EF4444',
-                'neutral': '#F59E0B',
-                'positive': '#10B981',
-                'very_positive': '#059669'
-            };
-            return colors[sentiment] || '#F59E0B';
-        }
-        
-        function formatDate(dateStr) {
-            const date = new Date(dateStr);
-            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        }
-        
-        // Calculate statistics
-        function calculateStats() {
-            const totalSessions = sentimentData.length;
-            const moodScores = sentimentData.map(d => getMoodScore(d.sentiment));
-            const avgMood = moodScores.reduce((a, b) => a + b, 0) / moodScores.length;
-            
-            // Calculate trend (compare recent vs older data)
-            const recent = moodScores.slice(0, Math.ceil(moodScores.length / 3));
-            const older = moodScores.slice(Math.ceil(moodScores.length / 3));
-            const recentAvg = recent.reduce((a, b) => a + b, 0) / recent.length;
-            const olderAvg = older.length > 0 ? older.reduce((a, b) => a + b, 0) / older.length : recentAvg;
-            
-            let trendEmoji = '📊';
-            if (recentAvg > olderAvg + 0.3) trendEmoji = '📈';
-            else if (recentAvg < olderAvg - 0.3) trendEmoji = '📉';
-            
-            // Calculate streak (consecutive days with data)
-            const dates = sentimentData.map(d => new Date(d.timestamp).toDateString());
-            const uniqueDates = [...new Set(dates)].sort();
-            let streak = 1;
-            for (let i = uniqueDates.length - 1; i > 0; i--) {
-                const current = new Date(uniqueDates[i]);
-                const previous = new Date(uniqueDates[i-1]);
-                const diffDays = (current - previous) / (1000 * 60 * 60 * 24);
-                if (diffDays <= 1) streak++;
-                else break;
-            }
-            
-            document.getElementById('totalSessions').textContent = totalSessions;
-            document.getElementById('avgMood').textContent = avgMood.toFixed(1);
-            document.getElementById('improvementTrend').textContent = trendEmoji;
-            document.getElementById('streakDays').textContent = streak;
-        }
-        
-        // Create mood trend chart
-        function createMoodTrendChart() {
-            const ctx = document.getElementById('moodTrendChart').getContext('2d');
-            const data = sentimentData.slice().reverse().map((d, i) => ({
-                x: i,
-                y: getMoodScore(d.sentiment),
-                label: formatDate(d.timestamp)
-            }));
-            
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    datasets: [{
-                        label: 'Mood Score',
-                        data: data,
-                        borderColor: '#10B981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: '#10B981',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 5
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: false,
-                            min: 0.5,
-                            max: 5.5,
-                            ticks: {
-                                stepSize: 1,
-                                callback: function(value) {
-                                    const labels = ['', '😢', '😔', '😐', '😊', '🌟'];
-                                    return labels[value] || '';
-                                }
-                            }
-                        },
-                        x: {
-                            display: false
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            callbacks: {
-                                title: function(context) {
-                                    return context[0].raw.label;
-                                },
-                                label: function(context) {
-                                    const score = context.raw.y;
-                                    const labels = {1: 'Severe Negative', 2: 'Negative', 3: 'Neutral', 4: 'Positive', 5: 'Very Positive'};
-                                    return `Mood: ${labels[score]} (${score}/5)`;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-        
-        // Create sentiment distribution pie chart
-        function createSentimentPieChart() {
-            const ctx = document.getElementById('sentimentPieChart').getContext('2d');
-            const sentimentCounts = {};
-            sentimentData.forEach(d => {
-                sentimentCounts[d.sentiment] = (sentimentCounts[d.sentiment] || 0) + 1;
-            });
-            
-            const labels = Object.keys(sentimentCounts);
-            const data = Object.values(sentimentCounts);
-            const colors = labels.map(label => getMoodColor(label));
-            
-            new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: labels.map(l => l.replace('_', ' ').toUpperCase()),
-                    datasets: [{
-                        data: data,
-                        backgroundColor: colors,
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
-                }
-            });
-        }
-        
-        // Create weekly mood pattern chart
-        function createWeeklyMoodChart() {
-            const ctx = document.getElementById('weeklyMoodChart').getContext('2d');
-            const weeklyData = new Array(7).fill().map(() => []);
-            
-            sentimentData.forEach(d => {
-                const dayOfWeek = new Date(d.timestamp).getDay();
-                weeklyData[dayOfWeek].push(getMoodScore(d.sentiment));
-            });
-            
-            const avgWeeklyMood = weeklyData.map(dayData => 
-                dayData.length > 0 ? dayData.reduce((a, b) => a + b, 0) / dayData.length : 0
-            );
-            
-            const dayLabels = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-            
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: dayLabels,
-                    datasets: [{
-                        label: 'Average Mood',
-                        data: avgWeeklyMood,
-                        backgroundColor: avgWeeklyMood.map(score => {
-                            if (score >= 4) return '#10B981';
-                            if (score >= 3) return '#F59E0B';
-                            if (score >= 2) return '#EF4444';
-                            return '#DC2626';
-                        }),
-                        borderRadius: 5
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: false,
-                            min: 0,
-                            max: 5,
-                            ticks: {
-                                stepSize: 1
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    }
-                }
-            });
-        }
-        
-        // Create confidence chart
-        function createConfidenceChart() {
-            const ctx = document.getElementById('confidenceChart').getContext('2d');
-            const confidenceData = sentimentData.slice().reverse().map((d, i) => ({
-                x: i,
-                y: d.confidence_score || 0.5
-            }));
-            
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    datasets: [{
-                        label: 'Confidence Score',
-                        data: confidenceData,
-                        borderColor: '#8B5CF6',
-                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.3
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 1,
-                            ticks: {
-                                callback: function(value) {
-                                    return (value * 100) + '%';
-                                }
-                            }
-                        },
-                        x: {
-                            display: false
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    }
-                }
-            });
-        }
-        
-        // Create mood timeline
-        function createMoodTimeline() {
-            const container = document.getElementById('moodTimelineContainer');
-            const recentData = sentimentData.slice(0, 10);
-            
-            recentData.forEach(item => {
-                const moodItem = document.createElement('div');
-                moodItem.className = `mood-item mood-${item.sentiment.replace('_', '-')}`;
-                
-                moodItem.innerHTML = `
-                    <div class="mood-emoji">${getMoodEmoji(item.sentiment)}</div>
-                    <div class="mood-details">
-                        <h4>${item.sentiment.replace('_', ' ').toUpperCase()}</h4>
-                        <p>${item.user_message ? item.user_message.substring(0, 100) + '...' : 'Chat session'}</p>
-                    </div>
-                    <div class="mood-timestamp">${formatDate(item.timestamp)}</div>
-                `;
-                
-                container.appendChild(moodItem);
-            });
-        }
-        
-        // Generate personalized insights
-        function generatePersonalizedInsights() {
-            const container = document.getElementById('personalizedInsights');
-            const insights = [];
-            
-            // Analyze patterns
-            const moodScores = sentimentData.map(d => getMoodScore(d.sentiment));
-            const avgMood = moodScores.reduce((a, b) => a + b, 0) / moodScores.length;
-            
-            if (avgMood >= 4) {
-                insights.push({
-                    title: '🌟 Excellent Mental Health',
-                    text: 'You\'re maintaining a very positive mental state! Keep up the great work with your self-care routine.'
-                });
-            } else if (avgMood >= 3) {
-                insights.push({
-                    title: '😊 Balanced Wellbeing',
-                    text: 'You\'re doing well overall. Consider incorporating more positive activities into your daily routine.'
-                });
-            } else {
-                insights.push({
-                    title: '💚 Room for Growth',
-                    text: 'Focus on self-care activities and consider reaching out to support networks when needed.'
-                });
-            }
-            
-            // Check for improvement trend
-            const recent = moodScores.slice(0, Math.ceil(moodScores.length / 3));
-            const older = moodScores.slice(Math.ceil(moodScores.length / 3));
-            const recentAvg = recent.reduce((a, b) => a + b, 0) / recent.length;
-            const olderAvg = older.length > 0 ? older.reduce((a, b) => a + b, 0) / older.length : recentAvg;
-            
-            if (recentAvg > olderAvg + 0.3) {
-                insights.push({
-                    title: '📈 Positive Trend',
-                    text: 'Great news! Your mood has been improving lately. Whatever you\'re doing is working!'
-                });
-            }
-            
-            // Activity suggestions
-            if (avgMood < 3) {
-                insights.push({
-                    title: '🌱 Suggested Activities',
-                    text: 'Try mindfulness meditation, regular exercise, or journaling to boost your mental wellbeing.'
-                });
-            }
-            
-            insights.forEach(insight => {
-                const insightItem = document.createElement('div');
-                insightItem.className = 'insight-item';
-                insightItem.innerHTML = `
-                    <h4>${insight.title}</h4>
-                    <p>${insight.text}</p>
-                `;
-                container.appendChild(insightItem);
-            });
-        }
-        
-        // Initialize all components
-        document.addEventListener('DOMContentLoaded', function() {
-            createMovingIcons();
-            calculateStats();
-            createMoodTrendChart();
-            createSentimentPieChart();
-            createWeeklyMoodChart();
-            createConfidenceChart();
-            createMoodTimeline();
-            generatePersonalizedInsights();
-        });
-        
-        {% else %}
-        // Just create moving icons for empty state
-        document.addEventListener('DOMContentLoaded', createMovingIcons);
-        {% endif %}
-    </script>
-</body>
-</html>
+    <div class="card">
+      <figure>
+        <figcaption>Overall tone of your messages</figcaption>
+        <div class="sub">How the messages in this range were classified.</div>
+        <div class="mix" id="mix" role="img" aria-label="Sentiment breakdown"></div>
+        <div class="legend">
+          <span><i class="swatch" style="background:var(--pos)"></i>Positive</span>
+          <span><i class="swatch" style="background:var(--neu)"></i>Neutral</span>
+          <span><i class="swatch" style="background:var(--neg)"></i>Negative</span>
+        </div>
+      </figure>
+    </div>
+
+    <div class="card">
+      <figure>
+        <figcaption>Mood trend</figcaption>
+        <div class="sub">Daily average tone. Above the line is steadier, below is heavier.</div>
+        <div class="chart-wrap" id="trend-wrap">
+          <svg id="trend" viewBox="0 0 720 220" preserveAspectRatio="xMidYMid meet" role="img"
+               aria-label="Line chart of daily average mood"></svg>
+          <div class="tip" id="tip"></div>
+        </div>
+        <details>
+          <summary>View as table</summary>
+          <table id="trend-table"><thead><tr><th>Date</th><th>Score</th><th>Messages</th></tr></thead><tbody></tbody></table>
+        </details>
+      </figure>
+    </div>
+
+    <div class="card">
+      <figure>
+        <figcaption>Emotions that came up most</figcaption>
+        <div class="sub">Detected across your messages in this range.</div>
+        <div class="bars" id="emotions"></div>
+      </figure>
+    </div>
+
+    <div class="card">
+      <h2 style="font-size:1.05rem;margin-bottom:.5rem">What stands out</h2>
+      <ul class="obs" id="observations"></ul>
+      <p class="hint" style="margin:.8rem 0 0">
+        These are observations about what you've written, not a diagnosis. Only a qualified
+        professional can assess your mental health.
+      </p>
+    </div>
+  </div>
+
+  <div class="card empty" id="empty" hidden>
+    <p>No data for this period yet.</p>
+    <a class="btn" href="{{ url_for('chat.chat_page') }}">Start a conversation</a>
+  </div>
+
+  <div class="card empty" id="loading"><p>Loading your insights…</p></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  const SVG = 'http://www.w3.org/2000/svg';
+  const el = function (id) { return document.getElementById(id); };
+  let days = 30;
+
+  function css(name) {
+    return getComputedStyle(document.querySelector('.viz')).getPropertyValue(name).trim();
+  }
+
+  function renderMix(counts, total) {
+    const mix = el('mix');
+    mix.replaceChildren();
+    if (!total) return;
+    [['positive', css('--pos')], ['neutral', css('--neu')], ['negative', css('--neg')]]
+      .forEach(function (pair) {
+        const n = counts[pair[0]] || 0;
+        if (!n) return;
+        const pct = Math.round((n / total) * 100);
+        const seg = document.createElement('div');
+        seg.className = 'seg';
+        seg.style.background = pair[1];
+        seg.style.flex = n;
+        // Direct label doubles as the secondary encoding, so identity is
+        // never carried by color alone.
+        seg.textContent = pct >= 9 ? pct + '%' : '';
+        seg.title = pair[0] + ': ' + n + ' (' + pct + '%)';
+        mix.appendChild(seg);
+      });
+  }
+
+  function renderTrend(trend) {
+    const svg = el('trend');
+    svg.replaceChildren();
+    const W = 720, H = 220, L = 38, R = 14, T = 14, B = 30;
+    const iw = W - L - R, ih = H - T - B;
+
+    if (!trend.length) return;
+
+    const x = function (i) {
+      return trend.length === 1 ? L + iw / 2 : L + (i / (trend.length - 1)) * iw;
+    };
+    const y = function (v) { return T + ((1 - v) / 2) * ih; };  // score is -1..1
+
+    function line(x1, y1, x2, y2, stroke, w, dash) {
+      const n = document.createElementNS(SVG, 'line');
+      n.setAttribute('x1', x1); n.setAttribute('y1', y1);
+      n.setAttribute('x2', x2); n.setAttribute('y2', y2);
+      n.setAttribute('stroke', stroke); n.setAttribute('stroke-width', w || 1);
+      if (dash) n.setAttribute('stroke-dasharray', dash);
+      svg.appendChild(n); return n;
+    }
+    function text(tx, ty, str, anchor, fill, size) {
+      const n = document.createElementNS(SVG, 'text');
+      n.setAttribute('x', tx); n.setAttribute('y', ty);
+      n.setAttribute('text-anchor', anchor || 'middle');
+      n.setAttribute('fill', fill || css('--muted-ink'));
+      n.setAttribute('font-size', size || 10);
+      n.textContent = str; svg.appendChild(n); return n;
+    }
+
+    // Recessive grid; the zero line is the one that carries meaning.
+    [1, 0.5, 0, -0.5, -1].forEach(function (v) {
+      const yy = y(v);
+      const isZero = v === 0;
+      line(L, yy, W - R, yy, isZero ? css('--axis') : css('--grid'), isZero ? 1.5 : 1);
+      text(L - 7, yy + 3, v === 1 ? 'steadier' : v === -1 ? 'heavier' : (v === 0 ? '0' : ''),
+           'end', css('--muted-ink'), 9);
+    });
+
+    let d = '';
+    trend.forEach(function (p, i) { d += (i ? ' L' : 'M') + x(i) + ' ' + y(p.score); });
+    const path = document.createElementNS(SVG, 'path');
+    path.setAttribute('d', d);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', css('--pos'));
+    path.setAttribute('stroke-width', 2);
+    path.setAttribute('stroke-linejoin', 'round');
+    path.setAttribute('stroke-linecap', 'round');
+    svg.appendChild(path);
+
+    trend.forEach(function (p, i) {
+      const c = document.createElementNS(SVG, 'circle');
+      c.setAttribute('cx', x(i)); c.setAttribute('cy', y(p.score)); c.setAttribute('r', 4);
+      c.setAttribute('fill', p.score < 0 ? css('--neg') : css('--pos'));
+      // 2px surface ring keeps overlapping marks legible.
+      c.setAttribute('stroke', css('--surface-1')); c.setAttribute('stroke-width', 2);
+      svg.appendChild(c);
+    });
+
+    // Date labels only at the ends — never one per point.
+    text(x(0), H - 10, trend[0].date.slice(5), 'start');
+    if (trend.length > 1) text(x(trend.length - 1), H - 10, trend[trend.length - 1].date.slice(5), 'end');
+
+    // Crosshair + tooltip.
+    const wrap = el('trend-wrap'), tip = el('tip');
+    const cross = line(L, T, L, H - B, css('--axis'), 1, '3 3');
+    cross.style.opacity = 0;
+    const hit = document.createElementNS(SVG, 'rect');
+    hit.setAttribute('x', L); hit.setAttribute('y', T);
+    hit.setAttribute('width', iw); hit.setAttribute('height', ih);
+    hit.setAttribute('fill', 'transparent');
+    svg.appendChild(hit);
+
+    svg.addEventListener('mousemove', function (ev) {
+      const box = svg.getBoundingClientRect();
+      const sx = (ev.clientX - box.left) * (W / box.width);
+      if (sx < L || sx > W - R) { cross.style.opacity = 0; tip.classList.remove('on'); return; }
+      let best = 0, bd = Infinity;
+      trend.forEach(function (p, i) {
+        const dd = Math.abs(x(i) - sx);
+        if (dd < bd) { bd = dd; best = i; }
+      });
+      const p = trend[best];
+      cross.setAttribute('x1', x(best)); cross.setAttribute('x2', x(best));
+      cross.style.opacity = 1;
+      tip.textContent = p.date + ' · ' + p.score.toFixed(2) + ' · ' + p.messages + ' msg';
+      tip.classList.add('on');
+      tip.style.left = (x(best) / W * box.width) + 'px';
+      tip.style.top = (y(p.score) / H * box.height) + 'px';
+    });
+    svg.addEventListener('mouseleave', function () {
+      cross.style.opacity = 0; tip.classList.remove('on');
+    });
+
+    const tbody = el('trend-table').querySelector('tbody');
+    tbody.replaceChildren();
+    trend.forEach(function (p) {
+      const tr = document.createElement('tr');
+      [p.date, p.score.toFixed(2), p.messages].forEach(function (v) {
+        const td = document.createElement('td'); td.textContent = v; tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+  }
+
+  function renderEmotions(top) {
+    const box = el('emotions');
+    box.replaceChildren();
+    if (!top.length) {
+      const p = document.createElement('p');
+      p.className = 'hint';
+      p.textContent = 'No emotions detected yet in this range.';
+      box.appendChild(p);
+      return;
+    }
+    const max = top[0][1];
+    top.forEach(function (pair) {
+      const row = document.createElement('div');
+      row.className = 'bar-row';
+      const name = document.createElement('div');
+      name.className = 'name';
+      name.textContent = pair[0].replace(/_/g, ' ');
+      const track = document.createElement('div');
+      track.className = 'bar-track';
+      const fill = document.createElement('div');
+      fill.className = 'bar-fill';
+      fill.style.width = Math.max(2, (pair[1] / max) * 100) + '%';
+      track.appendChild(fill);
+      const val = document.createElement('div');
+      val.className = 'val';
+      val.textContent = pair[1];
+      row.append(name, track, val);
+      box.appendChild(row);
+    });
+  }
+
+  async function load() {
+    el('loading').hidden = false;
+    el('body').hidden = true;
+    el('empty').hidden = true;
+
+    const res = await App.getJSON('/api/insights?days=' + days);
+    el('loading').hidden = true;
+
+    if (!res.ok || !res.data) {
+      el('empty').hidden = false;
+      return;
+    }
+    const d = res.data;
+    if (!d.total_messages) {
+      el('empty').hidden = false;
+      return;
+    }
+
+    el('body').hidden = false;
+    el('t-messages').textContent = d.total_messages;
+    el('t-streak').textContent = d.streak.current_streak;
+    el('t-total').textContent = d.streak.total_checkins;
+    el('t-flagged').textContent = d.elevated_risk_messages;
+
+    renderMix(d.sentiment_counts, d.total_messages);
+    renderTrend(d.trend || []);
+    renderEmotions(d.top_emotions || []);
+
+    const obs = el('observations');
+    obs.replaceChildren();
+    (d.observations || []).forEach(function (o) {
+      const li = document.createElement('li');
+      li.textContent = o;
+      obs.appendChild(li);
+    });
+  }
+
+  document.querySelector('.range').addEventListener('click', function (e) {
+    const b = e.target.closest('button[data-days]');
+    if (!b) return;
+    document.querySelectorAll('.range button').forEach(function (x) {
+      x.setAttribute('aria-pressed', String(x === b));
+    });
+    days = parseInt(b.getAttribute('data-days'), 10);
+    load();
+  });
+
+  load();
+})();
+</script>
+{% endblock %}

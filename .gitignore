@@ -1,37 +1,49 @@
-# Environment variables
+# Secrets — never commit these
 .env
+.env.local
+.env.*.local
+*.pem
+*.key
+PRODUCTION_SECRETS.txt
 
-# Database files (will be created fresh on deployment)
+# Databases (ephemeral on Render/Railway; use managed Postgres in production)
 *.db
+*.sqlite
+*.sqlite3
 
-# Python cache
+# Python
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
 
 # Virtual environments
 venv/
 .venv/
 env/
+ENV/
 
-# Flask session files
+# Test & lint caches
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Legacy filesystem sessions (the app now uses signed cookies)
 flask_session/
 
-# IDE files
+# Editors
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# OS files
+# OS
 .DS_Store
 Thumbs.db
 
 # Logs
 *.log
-
-# Development files
-test_*.py
-demo_*.py
-check_*.py
-system_*.py

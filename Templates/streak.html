@@ -1,479 +1,122 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DIL E AZAAD - Your Streak</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #006600 0%, #ffffff 50%, #E8F5E8 100%);
-            min-height: 100vh;
-        }
-        
-        .header {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 1rem 2rem;
-            box-shadow: 0 2px 10px rgba(0, 102, 0, 0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .logo-section {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        
-        .flag-img {
-            width: 40px;
-            height: auto;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 102, 0, 0.2);
-            background: #ffffff;
-            padding: 2px;
-            border: 1px solid #006600;
-        }
-        
-        .logo-text {
-            text-align: left;
-        }
-        
-        .urdu-title {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #006600;
-            font-family: 'Noto Nastaliq Urdu', serif;
-            margin-bottom: 0.1rem;
-        }
-        
-        .english-title {
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: #006600;
-            font-family: 'Inter', sans-serif;
-            letter-spacing: 1px;
-        }
-        
-        .nav-links {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-        }
-        
-        .nav-links a {
-            color: #006600;
-            text-decoration: none;
-            font-weight: 600;
-            padding: 0.5rem 1rem;
-            border-radius: 5px;
-            transition: all 0.3s;
-            border: 1px solid transparent;
-        }
-        
-        .nav-links a:hover {
-            background: #E8F5E8;
-            border-color: #006600;
-        }
-        
-        .logout-btn {
-            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-            color: white;
-            border: 1px solid #dc3545;
-        }
-        
-        .logout-btn:hover {
-            background: linear-gradient(135deg, #c82333 0%, #a71e2a 100%);
-            color: white;
-            border-color: #a71e2a;
-        }
-        
-        .container {
-            max-width: 1000px;
-            margin: 2rem auto;
-            padding: 0 2rem;
-        }
-        
-        .streak-card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 2rem;
-            box-shadow: 0 10px 30px rgba(0, 102, 0, 0.2);
-            margin-bottom: 2rem;
-            text-align: center;
-        }
-        
-        .streak-title {
-            font-size: 2rem;
-            color: #006600;
-            margin-bottom: 1rem;
-            font-family: 'Noto Nastaliq Urdu', serif;
-        }
-        
-        .streak-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin: 2rem 0;
-        }
-        
-        .stat-item {
-            background: linear-gradient(135deg, #E8F5E8 0%, #F0FFF0 100%);
-            padding: 1.5rem;
-            border-radius: 15px;
-            border: 2px solid #006600;
-        }
-        
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #006600;
-        }
-        
-        .stat-label {
-            font-size: 1rem;
-            color: #666;
-            margin-top: 0.5rem;
-        }
-        
-        .graph-card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 2rem;
-            box-shadow: 0 10px 30px rgba(0, 102, 0, 0.2);
-            margin-bottom: 2rem;
-        }
-        
-        .graph-title {
-            font-size: 1.5rem;
-            color: #006600;
-            margin-bottom: 1rem;
-            text-align: center;
-        }
-        
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(25px, 1fr));
-            gap: 3px;
-            margin: 1rem 0;
-        }
-        
-        .calendar-day {
-            width: 25px;
-            height: 25px;
-            border-radius: 3px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.7rem;
-            font-weight: 600;
-            position: relative;
-            cursor: pointer;
-        }
-        
-        .calendar-day.checked-in {
-            background: #006600;
-            color: white;
-        }
-        
-        .calendar-day.not-checked {
-            background: #f0f0f0;
-            color: #999;
-        }
-        
-        .calendar-day.today {
-            border: 2px solid #ff6b35;
-        }
-        
-        .calendar-legend {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin-top: 1rem;
-            font-size: 0.9rem;
-        }
-        
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .legend-color {
-            width: 15px;
-            height: 15px;
-            border-radius: 3px;
-        }
-        
-        .checkin-btn {
-            background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%);
-            color: white;
-            border: none;
-            padding: 1rem 2rem;
-            border-radius: 10px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 1rem;
-        }
-        
-        .checkin-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
-        }
-        
-        .checkin-btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .header {
-                padding: 1rem;
-                flex-direction: column;
-                gap: 1rem;
-            }
-            
-            .container {
-                padding: 0 1rem;
-            }
-            
-            .streak-card, .graph-card {
-                padding: 1.5rem;
-            }
-            
-            .calendar-grid {
-                grid-template-columns: repeat(10, 1fr);
-            }
-            
-            .calendar-day {
-                width: 20px;
-                height: 20px;
-                font-size: 0.6rem;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <div class="logo-section">
-            <img src="{{ url_for('static', filename='pakistan-flag.png') }}" alt="Pakistan Flag" class="flag-img">
-            <div class="logo-text">
-                <div class="urdu-title">دل آزاد</div>
-                <div class="english-title">DIL E AZAAD</div>
-            </div>
-        </div>
-        <div class="nav-links">
-            <a href="{{ url_for('chat') }}">💬 Chat</a>
-            <a href="{{ url_for('welcome') }}">🏠 Home</a>
-            <a href="{{ url_for('logout') }}" class="logout-btn">🚪 Logout</a>
-        </div>
-    </div>
-    
-    <div class="container">
-        <div class="streak-card">
-            <h1 class="streak-title">🔥 Your Mental Health Journey</h1>
-            <p style="color: #666; margin-bottom: 2rem;">Keep building healthy habits every day!</p>
-            
-            <div class="streak-stats">
-                <div class="stat-item">
-                    <div class="stat-number">{{ streak_data.current_streak }}</div>
-                    <div class="stat-label">Current Streak</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">{{ streak_data.longest_streak }}</div>
-                    <div class="stat-label">Longest Streak</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">{{ streak_data.total_checkins }}</div>
-                    <div class="stat-label">Total Check-ins</div>
-                </div>
-            </div>
-            
-            <button class="checkin-btn" onclick="checkIn()" id="checkinBtn">
-                Daily Check-in ✨
-            </button>
-        </div>
-        
-        <div class="graph-card">
-            <h2 class="graph-title">📊 Last 30 Days Activity</h2>
-            <div class="calendar-grid" id="calendarGrid">
-                {% for day in graph_data %}
-                <div class="calendar-day {% if day.checked_in %}checked-in{% else %}not-checked{% endif %} {% if day.date == today %}today{% endif %}" 
-                     title="{{ day.date }}">
-                    {{ day.day }}
-                </div>
-                {% endfor %}
-            </div>
-            
-            <div class="calendar-legend">
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #006600;"></div>
-                    <span>Checked In</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #f0f0f0;"></div>
-                    <span>No Activity</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="border: 2px solid #ff6b35; background: transparent;"></div>
-                    <span>Today</span>
-                </div>
-            </div>
-            
-            <!-- Chart.js canvas with responsive container -->
-            <div style="margin-top: 2rem; height: 300px; max-width: 100%;">
-                <canvas id="streakChart"></canvas>
-            </div>
-        </div>
-    </div>
-    
-    <script>
-        // Check-in functionality
-        async function checkIn() {
-            const btn = document.getElementById('checkinBtn');
-            const originalText = btn.textContent;
-            
-            btn.disabled = true;
-            btn.textContent = 'Checking in...';
-            
-            try {
-                const response = await fetch('/checkin', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok) {
-                    // Update streak numbers
-                    document.querySelector('.stat-item:nth-child(1) .stat-number').textContent = data.current_streak;
-                    document.querySelector('.stat-item:nth-child(2) .stat-number').textContent = data.longest_streak;
-                    
-                    // Show success message
-                    btn.textContent = '✅ ' + data.message;
-                    btn.style.background = '#28a745';
-                    
-                    // Reload page after 2 seconds to update the calendar
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 2000);
-                } else {
-                    throw new Error(data.error || 'Check-in failed');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                btn.textContent = '❌ Check-in failed';
-                btn.style.background = '#dc3545';
-                
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                    btn.style.background = '';
-                    btn.disabled = false;
-                }, 3000);
-            }
-        }
-        
-        // Create streak trend chart
-        const ctx = document.getElementById('streakChart').getContext('2d');
-        
-        // Generate chart data from graph_data
-        const chartData = {{ graph_data | tojson }};
-        const labels = chartData.map(day => day.month + ' ' + day.day);
-        const streakData = [];
-        let currentStreak = 0;
-        
-        // Calculate running streak for each day
-        chartData.forEach(day => {
-            if (day.checked_in) {
-                currentStreak++;
-            } else {
-                currentStreak = 0;
-            }
-            streakData.push(currentStreak);
-        });
-        
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Daily Streak',
-                    data: streakData,
-                    borderColor: '#006600',
-                    backgroundColor: 'rgba(0, 102, 0, 0.1)',
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4,
-                    pointBackgroundColor: '#006600',
-                    pointBorderColor: '#ffffff',
-                    pointBorderWidth: 2,
-                    pointRadius: 4,
-                    pointHoverRadius: 6
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1
-                        },
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.1)'
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        },
-                        ticks: {
-                            maxTicksLimit: 10
-                        }
-                    }
-                },
-                elements: {
-                    point: {
-                        hoverBackgroundColor: '#ff6b35'
-                    }
-                }
-            }
-        });
-        
-        // Check if already checked in today
-        document.addEventListener('DOMContentLoaded', function() {
-            const today = new Date().toISOString().split('T')[0];
-            const todayElement = document.querySelector('.calendar-day.today');
-            
-            if (todayElement && todayElement.classList.contains('checked-in')) {
-                const btn = document.getElementById('checkinBtn');
-                btn.textContent = '✅ Already checked in today!';
-                btn.disabled = true;
-                btn.style.background = '#28a745';
-            }
-        });
-    </script>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Check-in streak — Dil-e-Azaad{% endblock %}
+
+{% block head %}
+<style>
+.stats{display:grid;gap:.75rem;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));margin-bottom:1rem}
+.stat{background:var(--wash);border:1px solid var(--line);border-radius:var(--radius);padding:1rem;text-align:center}
+.stat .n{font-size:1.9rem;font-weight:600;color:var(--green);line-height:1.1}
+.stat .l{font-size:.8rem;color:var(--muted);margin-top:.2rem}
+.cal{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;margin-top:.75rem}
+.cell{aspect-ratio:1;border-radius:6px;background:var(--wash-2);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:.68rem;color:var(--muted)}
+.cell.on{background:var(--green);border-color:var(--green);color:#fff;font-weight:600}
+.moods{display:flex;gap:.4rem;flex-wrap:wrap;margin:.6rem 0 1rem}
+.mood{flex:1;min-width:64px;padding:.6rem .3rem;border:1px solid var(--line);border-radius:10px;
+  background:#fff;cursor:pointer;font:inherit;font-size:.78rem;color:var(--muted);text-align:center}
+.mood:hover{border-color:var(--green)}
+.mood.sel{background:var(--wash-2);border-color:var(--green);color:var(--green);font-weight:600}
+.mood .e{display:block;font-size:1.25rem;margin-bottom:.15rem}
+@media(max-width:560px){.cal{grid-template-columns:repeat(6,1fr)}}
+</style>
+{% endblock %}
+
+{% block content %}
+<h1 style="font-size:1.35rem;color:var(--green)">Daily check-in</h1>
+<p class="hint" style="margin-bottom:1.25rem">
+  A moment each day to notice how you're doing. The streak is just a nudge — missing a day isn't failure.
+</p>
+
+<div class="stats" id="stats">
+  <div class="stat"><div class="n" id="s-current">{{ streak.current_streak }}</div><div class="l">Current streak</div></div>
+  <div class="stat"><div class="n" id="s-longest">{{ streak.longest_streak }}</div><div class="l">Longest streak</div></div>
+  <div class="stat"><div class="n" id="s-total">{{ streak.total_checkins }}</div><div class="l">Total check-ins</div></div>
+</div>
+
+<div class="card">
+  <h2 style="font-size:1.05rem">How are you feeling today?</h2>
+  <div class="moods" id="moods">
+    <button class="mood" type="button" data-score="1"><span class="e">😞</span>Struggling</button>
+    <button class="mood" type="button" data-score="2"><span class="e">😕</span>Low</button>
+    <button class="mood" type="button" data-score="3"><span class="e">😐</span>Okay</button>
+    <button class="mood" type="button" data-score="4"><span class="e">🙂</span>Good</button>
+    <button class="mood" type="button" data-score="5"><span class="e">😄</span>Great</button>
+  </div>
+  <div class="field">
+    <label for="note">Anything you want to note? (optional, private, encrypted)</label>
+    <textarea id="note" rows="2" maxlength="1000" placeholder="A word or two about today…"></textarea>
+  </div>
+  <button class="btn" id="checkin" type="button" {% if streak.checked_in_today %}disabled{% endif %}>
+    {% if streak.checked_in_today %}Already checked in today{% else %}Check in for today{% endif %}
+  </button>
+  <p id="msg" class="hint" style="margin:.7rem 0 0"></p>
+</div>
+
+<div class="card">
+  <h2 style="font-size:1.05rem">Last 30 days</h2>
+  <div class="cal" id="cal">
+    {% for d in calendar %}
+      <div class="cell {{ 'on' if d.checked_in else '' }}" title="{{ d.date }}">{{ d.day }}</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  const btn = document.getElementById('checkin');
+  const msg = document.getElementById('msg');
+  const note = document.getElementById('note');
+  let score = null;
+
+  document.getElementById('moods').addEventListener('click', function (e) {
+    const b = e.target.closest('.mood');
+    if (!b) return;
+    document.querySelectorAll('.mood').forEach(function (m) { m.classList.remove('sel'); });
+    b.classList.add('sel');
+    score = parseInt(b.getAttribute('data-score'), 10);
+  });
+
+  function paint(streak, calendar) {
+    if (streak) {
+      document.getElementById('s-current').textContent = streak.current_streak;
+      document.getElementById('s-longest').textContent = streak.longest_streak;
+      document.getElementById('s-total').textContent = streak.total_checkins;
+    }
+    if (calendar) {
+      const cal = document.getElementById('cal');
+      cal.replaceChildren();
+      calendar.forEach(function (d) {
+        const cell = document.createElement('div');
+        cell.className = 'cell' + (d.checked_in ? ' on' : '');
+        cell.title = d.date;
+        cell.textContent = d.day;
+        cal.appendChild(cell);
+      });
+    }
+  }
+
+  btn.addEventListener('click', async function () {
+    btn.disabled = true;
+    msg.textContent = '';
+    const res = await App.postJSON('/api/checkin', {
+      mood_score: score,
+      note: note.value.trim() || null
+    });
+    const d = res.data || {};
+    msg.textContent = d.message || (res.ok ? 'Checked in.' : 'Could not check in — please try again.');
+    if (res.ok) {
+      btn.textContent = 'Checked in for today';
+      paint(d.streak, d.calendar);
+      note.value = '';
+    } else if (res.status === 409) {
+      btn.textContent = 'Already checked in today';
+      paint(d.streak, null);
+    } else {
+      btn.disabled = false;
+    }
+  });
+})();
+</script>
+{% endblock %}
